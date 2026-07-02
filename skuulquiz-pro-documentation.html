@@ -1,0 +1,1482 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SkuulQuiz PRO — Documentation</title>
+<meta name="description" content="Complete guide to SkuulQuiz PRO: setup, question building, testing, scoring, and analytics for Super Admins, Admins, and Students.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700;9..144,900&family=Sora:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ══════════════════════════════════════════════════════════
+   DESIGN TOKENS
+   ══════════════════════════════════════════════════════════ */
+:root{
+  --ink:          #0C0D12;
+  --ink-2:        #101219;
+  --paper:        #16171F;
+  --paper-raised: #1D1F29;
+  --rule:         #282A37;
+  --rule-soft:    #1F212B;
+  --text:         #ECEDF3;
+  --text-dim:     #C2C4D2;
+  --muted:        #888C9E;
+  --muted-2:      #63667A;
+
+  --mark:         #E8A33D;
+  --mark-dim:     rgba(232,163,61,.13);
+  --mark-line:    rgba(232,163,61,.35);
+
+  --role-super:      #B18CF2;
+  --role-super-dim:  rgba(177,140,242,.13);
+  --role-admin:      #45D6C4;
+  --role-admin-dim:  rgba(69,214,196,.13);
+  --role-student:    #F2836B;
+  --role-student-dim:rgba(242,131,107,.13);
+
+  --good:         #4ADE80;
+  --good-dim:     rgba(74,222,128,.13);
+  --bad:          #F2645C;
+  --bad-dim:      rgba(242,100,92,.13);
+
+  --font-display: 'Fraunces', Georgia, serif;
+  --font-body:    'Sora', -apple-system, sans-serif;
+  --font-mono:    'JetBrains Mono', monospace;
+
+  --radius:    14px;
+  --radius-sm: 9px;
+  --shadow:    0 8px 30px rgba(0,0,0,.35);
+  --topbar-h:  64px;
+}
+
+*,*::before,*::after{ box-sizing:border-box; margin:0; padding:0; }
+html{ scroll-behavior:smooth; }
+@media (prefers-reduced-motion: reduce){ html{ scroll-behavior:auto; } *{ animation-duration:.001ms !important; animation-iteration-count:1 !important; transition-duration:.001ms !important; } }
+
+body{
+  background:var(--ink);
+  color:var(--text-dim);
+  font-family:var(--font-body);
+  font-size:16px;
+  line-height:1.65;
+  -webkit-font-smoothing:antialiased;
+  overflow-x:hidden;
+}
+
+/* faint ruled-paper texture across the whole page */
+body::before{
+  content:'';
+  position:fixed; inset:0;
+  background-image:repeating-linear-gradient(180deg, rgba(255,255,255,.014) 0px, rgba(255,255,255,.014) 1px, transparent 1px, transparent 34px);
+  pointer-events:none;
+  z-index:0;
+}
+
+a{ color:var(--mark); text-decoration:none; }
+a:hover{ text-decoration:underline; }
+img{ max-width:100%; display:block; }
+::selection{ background:var(--mark-dim); color:var(--mark); }
+
+:focus-visible{ outline:2px solid var(--mark); outline-offset:3px; border-radius:4px; }
+
+h1,h2,h3,h4{ font-family:var(--font-display); color:var(--text); font-weight:600; letter-spacing:-.01em; }
+p{ max-width:68ch; }
+code, .mono{ font-family:var(--font-mono); }
+
+/* ══════════════════════════════════════════════════════════
+   TOP BAR
+   ══════════════════════════════════════════════════════════ */
+.topbar{
+  position:sticky; top:0; z-index:100;
+  height:var(--topbar-h);
+  display:flex; align-items:center; gap:16px;
+  padding:0 22px;
+  background:rgba(12,13,18,.82);
+  backdrop-filter:blur(14px) saturate(140%);
+  border-bottom:1px solid var(--rule-soft);
+}
+.tb-menu-btn{
+  display:none;
+  width:38px; height:38px; border-radius:9px;
+  background:var(--paper); border:1px solid var(--rule);
+  color:var(--text); cursor:pointer;
+  align-items:center; justify-content:center;
+  flex-shrink:0;
+}
+.tb-brand{ display:flex; align-items:center; gap:10px; flex-shrink:0; }
+.tb-mark{
+  width:30px; height:30px; border-radius:8px;
+  background:linear-gradient(155deg, var(--mark), #C9791F);
+  display:flex; align-items:center; justify-content:center;
+  font-family:var(--font-display); font-weight:700; color:#1A1200; font-size:15px;
+}
+.tb-name{ font-family:var(--font-display); font-weight:600; color:var(--text); font-size:1.02rem; letter-spacing:-.01em; }
+.tb-tag{ font-size:.68rem; color:var(--muted-2); font-family:var(--font-mono); letter-spacing:.06em; padding:2px 7px; border:1px solid var(--rule); border-radius:5px; margin-left:2px; }
+.tb-spacer{ flex:1; }
+.tb-search{
+  display:flex; align-items:center; gap:8px;
+  width:260px; padding:8px 12px;
+  background:var(--paper); border:1px solid var(--rule); border-radius:9px;
+  color:var(--muted); font-size:.83rem;
+  transition:border-color .15s;
+}
+.tb-search:focus-within{ border-color:var(--mark-line); }
+.tb-search input{
+  background:none; border:none; outline:none; color:var(--text); font-family:var(--font-body); font-size:.83rem; width:100%;
+}
+.tb-search input::placeholder{ color:var(--muted-2); }
+.tb-search kbd{ font-family:var(--font-mono); font-size:.68rem; color:var(--muted-2); border:1px solid var(--rule); border-radius:4px; padding:1px 5px; }
+@media (max-width:900px){ .tb-search{ display:none; } .tb-menu-btn{ display:flex; } }
+
+/* ══════════════════════════════════════════════════════════
+   LAYOUT
+   ══════════════════════════════════════════════════════════ */
+.layout{ display:flex; max-width:1400px; margin:0 auto; position:relative; z-index:1; }
+
+.sidebar{
+  width:270px; flex-shrink:0;
+  position:sticky; top:var(--topbar-h);
+  height:calc(100vh - var(--topbar-h));
+  border-right:1px solid var(--rule-soft);
+}
+.sidebar-inner{
+  height:100%;
+  overflow-y:auto;
+  padding:26px 14px 60px 22px;
+}
+.sidebar-inner::-webkit-scrollbar{ width:6px; }
+.sidebar-inner::-webkit-scrollbar-thumb{ background:var(--rule); border-radius:6px; }
+
+.sb-search-mobile{ display:none; }
+@media (max-width:900px){
+  .sb-search-mobile{ display:flex; align-items:center; gap:8px; padding:8px 12px; background:var(--paper); border:1px solid var(--rule); border-radius:9px; margin-bottom:18px; }
+  .sb-search-mobile input{ background:none; border:none; outline:none; color:var(--text); font-family:var(--font-body); font-size:.85rem; width:100%; }
+  .sb-search-mobile input::placeholder{ color:var(--muted-2); }
+}
+
+.sb-group{ margin-bottom:22px; }
+.sb-group-label{
+  font-size:.68rem; text-transform:uppercase; letter-spacing:.1em;
+  color:var(--muted-2); font-weight:600; margin-bottom:8px; padding-left:11px;
+}
+.sb-link{
+  display:flex; align-items:center; gap:9px;
+  padding:6.5px 11px; border-radius:8px;
+  color:var(--muted); font-size:.855rem; font-weight:500;
+  border-left:2px solid transparent;
+  transition:all .12s;
+  cursor:pointer;
+}
+.sb-link:hover{ color:var(--text); background:var(--paper); text-decoration:none; }
+.sb-link.active{ color:var(--text); background:var(--paper-raised); }
+.sb-link .dot{ width:6px; height:6px; border-radius:50%; background:var(--muted-2); flex-shrink:0; }
+.sb-link.role-super .dot{ background:var(--role-super); }
+.sb-link.role-admin .dot{ background:var(--role-admin); }
+.sb-link.role-student .dot{ background:var(--role-student); }
+.sb-link.role-super.active{ border-left-color:var(--role-super); }
+.sb-link.role-admin.active{ border-left-color:var(--role-admin); }
+.sb-link.role-student.active{ border-left-color:var(--role-student); }
+.sb-link.hidden-by-search{ display:none; }
+
+.sb-backdrop{ display:none !important; }
+
+/* MOBILE — full-page content swap, not a fixed overlay panel.
+   Every earlier attempt kept the nav list inside a position:fixed element
+   with its own overflow-y:auto, and that combination never reliably scrolled
+   across attempts. So instead of tuning that mechanism again: opening the
+   menu now hides the article content and shows the nav list as normal,
+   non-fixed, in-flow page content. There is no overflow container left to
+   misbehave, because there isn't one anymore — scrolling through the list is
+   just the browser's ordinary top-level page scroll, the one mechanism that
+   cannot fail to work. */
+@media (max-width:900px){
+  .sidebar{ display:none; }
+  body.nav-open .sidebar{
+    display:block;
+    position:static;
+    width:100%;
+    max-width:none;
+    height:auto;
+    border-right:none;
+    background:var(--ink-2);
+  }
+  body.nav-open .main{ display:none; }
+
+  .sidebar-inner{
+    height:auto;
+    overflow:visible;
+    padding:20px 20px 70px;
+    min-height:calc(100vh - var(--topbar-h));
+  }
+
+  .sb-close{
+    display:flex; align-items:center; justify-content:center;
+    width:32px; height:32px; margin:0 0 10px 0;
+    background:var(--paper); border:1px solid var(--rule); border-radius:8px; color:var(--text); cursor:pointer;
+  }
+}
+
+.main{ flex:1; min-width:0; padding:0 0 100px; }
+.content{ max-width:840px; margin:0 auto; padding:0 40px; }
+@media (max-width:640px){ .content{ padding:0 20px; } }
+
+/* ══════════════════════════════════════════════════════════
+   HERO
+   ══════════════════════════════════════════════════════════ */
+.hero{ padding:56px 40px 10px; max-width:840px; margin:0 auto; }
+@media (max-width:640px){ .hero{ padding:36px 20px 10px; } }
+
+.hero-doc{
+  position:relative;
+  border:1px solid var(--rule);
+  border-radius:var(--radius);
+  padding:44px 40px;
+  background:
+    repeating-linear-gradient(180deg, rgba(255,255,255,.02) 0px, rgba(255,255,255,.02) 1px, transparent 1px, transparent 30px),
+    linear-gradient(155deg, var(--paper) 0%, var(--ink-2) 100%);
+  overflow:hidden;
+}
+.hero-doc::before{
+  content:'';
+  position:absolute; top:-40%; right:-15%;
+  width:420px; height:420px; border-radius:50%;
+  background:radial-gradient(circle, var(--mark-dim), transparent 70%);
+  pointer-events:none;
+}
+.hero-eyebrow{
+  display:inline-flex; align-items:center; gap:7px;
+  font-family:var(--font-mono); font-size:.72rem; letter-spacing:.08em; text-transform:uppercase;
+  color:var(--mark); background:var(--mark-dim); border:1px solid var(--mark-line);
+  padding:5px 11px; border-radius:20px; margin-bottom:20px;
+}
+.hero-eyebrow .pulse{ width:6px; height:6px; border-radius:50%; background:var(--mark); animation:pulse 2s ease-in-out infinite; }
+@keyframes pulse{ 0%,100%{ opacity:1; } 50%{ opacity:.35; } }
+
+.hero h1{ font-size:clamp(2.1rem, 5vw, 3.1rem); line-height:1.08; margin-bottom:18px; font-weight:600; }
+.hero h1 em{ font-style:italic; color:var(--mark); font-weight:500; }
+.hero-sub{ font-size:1.05rem; color:var(--text-dim); max-width:56ch; margin-bottom:32px; }
+
+.hero-stats{ display:flex; flex-wrap:wrap; gap:0; border-top:1px solid var(--rule); padding-top:26px; }
+.hero-stat{ flex:1; min-width:120px; padding-right:20px; }
+.hero-stat-val{ font-family:var(--font-display); font-size:1.9rem; font-weight:600; color:var(--text); line-height:1; margin-bottom:5px; }
+.hero-stat-lbl{ font-size:.76rem; color:var(--muted); letter-spacing:.02em; }
+
+.hero-stamp{
+  position:absolute; top:36px; right:40px;
+  width:84px; height:84px; border-radius:50%;
+  border:1.5px dashed var(--mark-line);
+  display:flex; align-items:center; justify-content:center; text-align:center;
+  transform:rotate(9deg);
+  font-family:var(--font-mono); font-size:.6rem; letter-spacing:.05em; color:var(--mark); text-transform:uppercase;
+  line-height:1.3;
+}
+@media (max-width:640px){ .hero-stamp{ display:none; } }
+
+/* ══════════════════════════════════════════════════════════
+   SECTION SCAFFOLDING
+   ══════════════════════════════════════════════════════════ */
+.section{ padding:64px 40px 0; max-width:840px; margin:0 auto; scroll-margin-top:calc(var(--topbar-h) + 16px); }
+@media (max-width:640px){ .section{ padding:52px 20px 0; } }
+.section-eyebrow{ font-family:var(--font-mono); font-size:.72rem; letter-spacing:.1em; text-transform:uppercase; color:var(--muted-2); margin-bottom:10px; }
+.section h2{ font-size:1.85rem; margin-bottom:14px; }
+.section-lead{ font-size:1.01rem; color:var(--text-dim); margin-bottom:34px; max-width:60ch; }
+.subsection{ scroll-margin-top:calc(var(--topbar-h) + 16px); margin-top:44px; }
+.subsection h3{ font-size:1.28rem; margin-bottom:12px; color:var(--text); }
+.subsection h4{ font-family:var(--font-body); font-size:.95rem; font-weight:700; color:var(--text); margin:22px 0 8px; }
+.section p{ margin-bottom:14px; }
+.section ul, .section ol{ margin:0 0 16px 0; padding-left:22px; color:var(--text-dim); }
+.section li{ margin-bottom:7px; }
+.section ol{ counter-reset:step; list-style:none; padding-left:0; }
+.section ol li{
+  counter-increment:step;
+  position:relative; padding-left:38px; margin-bottom:14px;
+}
+.section ol li::before{
+  content:counter(step);
+  position:absolute; left:0; top:0;
+  width:26px; height:26px; border-radius:7px;
+  background:var(--paper); border:1px solid var(--rule);
+  color:var(--mark); font-family:var(--font-mono); font-size:.76rem; font-weight:600;
+  display:flex; align-items:center; justify-content:center;
+}
+.section strong{ color:var(--text); font-weight:600; }
+
+hr.divider{ border:none; border-top:1px solid var(--rule-soft); margin:56px 0 0; }
+
+/* role banners */
+.role-banner{
+  display:flex; align-items:center; gap:12px;
+  padding:16px 18px; border-radius:var(--radius-sm);
+  margin-bottom:30px; border:1px solid var(--rule);
+}
+.role-banner .rb-icon{ width:38px; height:38px; border-radius:9px; display:flex; align-items:center; justify-content:center; font-size:1.15rem; flex-shrink:0; }
+.role-banner .rb-text .rb-title{ font-weight:700; color:var(--text); font-size:.92rem; }
+.role-banner .rb-text .rb-sub{ font-size:.8rem; color:var(--muted); margin-top:2px; }
+.role-banner.super{ background:var(--role-super-dim); border-color:rgba(177,140,242,.3); }
+.role-banner.super .rb-icon{ background:rgba(177,140,242,.18); color:var(--role-super); }
+.role-banner.admin{ background:var(--role-admin-dim); border-color:rgba(69,214,196,.3); }
+.role-banner.admin .rb-icon{ background:rgba(69,214,196,.18); color:var(--role-admin); }
+.role-banner.student{ background:var(--role-student-dim); border-color:rgba(242,131,107,.3); }
+.role-banner.student .rb-icon{ background:rgba(242,131,107,.18); color:var(--role-student); }
+
+/* callouts */
+.callout{ display:flex; gap:12px; padding:15px 17px; border-radius:var(--radius-sm); border:1px solid var(--rule); margin:20px 0; }
+.callout .co-icon{ font-size:1.05rem; flex-shrink:0; margin-top:1px; }
+.callout .co-body{ font-size:.87rem; color:var(--text-dim); }
+.callout .co-title{ font-weight:700; color:var(--text); font-size:.85rem; margin-bottom:3px; }
+.callout.tip{ background:var(--mark-dim); border-color:var(--mark-line); }
+.callout.tip .co-title{ color:var(--mark); }
+.callout.note{ background:rgba(69,214,196,.08); border-color:rgba(69,214,196,.28); }
+.callout.note .co-title{ color:var(--role-admin); }
+.callout.warn{ background:var(--bad-dim); border-color:rgba(242,100,92,.32); }
+.callout.warn .co-title{ color:var(--bad); }
+
+/* feature cards */
+.card-grid{ display:grid; grid-template-columns:repeat(auto-fill, minmax(230px,1fr)); gap:14px; margin:22px 0 30px; }
+.f-card{ background:var(--paper); border:1px solid var(--rule); border-radius:var(--radius-sm); padding:18px; transition:border-color .15s, transform .15s; }
+.f-card:hover{ border-color:var(--mark-line); transform:translateY(-2px); }
+.f-card .fc-icon{ font-size:1.3rem; margin-bottom:10px; }
+.f-card .fc-title{ font-weight:700; color:var(--text); font-size:.9rem; margin-bottom:5px; }
+.f-card .fc-desc{ font-size:.81rem; color:var(--muted); line-height:1.55; }
+
+/* tables */
+.tbl-wrap{ overflow-x:auto; margin:20px 0 30px; border:1px solid var(--rule); border-radius:var(--radius-sm); }
+table.doc-table{ width:100%; border-collapse:collapse; font-size:.86rem; }
+table.doc-table th{ background:var(--paper); color:var(--text); text-align:left; padding:11px 15px; font-size:.72rem; text-transform:uppercase; letter-spacing:.06em; font-weight:700; border-bottom:1px solid var(--rule); white-space:nowrap; }
+table.doc-table td{ padding:11px 15px; border-bottom:1px solid var(--rule-soft); color:var(--text-dim); }
+table.doc-table tr:last-child td{ border-bottom:none; }
+table.doc-table tr:hover td{ background:var(--paper); }
+
+/* source badges — mirrors the actual in-app badges */
+.src-badge{ display:inline-flex; align-items:center; gap:4px; font-size:.74rem; font-weight:600; padding:3px 9px; border-radius:20px; }
+.src-quiz{ background:var(--paper-raised); color:var(--muted); }
+.src-manual{ background:rgba(232,163,61,.15); color:var(--mark); }
+.src-edited{ background:rgba(69,214,196,.15); color:var(--role-admin); }
+.src-csv{ background:var(--good-dim); color:var(--good); }
+
+/* mono chip (for filenames, ids) */
+.chip{ font-family:var(--font-mono); font-size:.82rem; background:var(--paper); border:1px solid var(--rule); color:var(--mark); padding:2px 8px; border-radius:6px; }
+
+/* code block with copy */
+.code-block{ position:relative; background:var(--paper); border:1px solid var(--rule); border-radius:var(--radius-sm); padding:16px 18px; margin:18px 0; font-family:var(--font-mono); font-size:.83rem; color:var(--text-dim); overflow-x:auto; }
+.code-block .copy-btn{ position:absolute; top:9px; right:9px; background:var(--paper-raised); border:1px solid var(--rule); color:var(--muted); font-family:var(--font-body); font-size:.72rem; padding:4px 9px; border-radius:6px; cursor:pointer; }
+.code-block .copy-btn:hover{ color:var(--text); border-color:var(--mark-line); }
+
+/* keyboard key */
+.key{ display:inline-flex; align-items:center; justify-content:center; min-width:24px; padding:2px 7px; font-family:var(--font-mono); font-size:.78rem; color:var(--text); background:var(--paper-raised); border:1px solid var(--rule); border-bottom-width:2px; border-radius:6px; }
+
+/* fade-in on scroll */
+.reveal{ opacity:0; transform:translateY(14px); transition:opacity .5s ease, transform .5s ease; }
+.reveal.in{ opacity:1; transform:translateY(0); }
+
+/* back to top */
+.back-top{
+  position:fixed; bottom:26px; right:26px; z-index:90;
+  width:44px; height:44px; border-radius:50%;
+  background:var(--paper-raised); border:1px solid var(--rule); color:var(--text);
+  display:flex; align-items:center; justify-content:center; cursor:pointer;
+  opacity:0; pointer-events:none; transform:translateY(8px);
+  transition:opacity .2s, transform .2s;
+  box-shadow:var(--shadow);
+}
+.back-top.show{ opacity:1; pointer-events:auto; transform:translateY(0); }
+
+/* footer */
+.doc-footer{ max-width:840px; margin:80px auto 0; padding:32px 40px 0; border-top:1px solid var(--rule-soft); text-align:center; }
+@media (max-width:640px){ .doc-footer{ padding:32px 20px 0; } }
+.doc-footer p{ margin:0 auto; font-size:.82rem; color:var(--muted-2); }
+
+/* CodeVerse / company lockup */
+.cv-panel{
+  position:relative;
+  border:1px solid var(--rule); border-radius:var(--radius);
+  padding:32px 34px;
+  background:linear-gradient(155deg, var(--paper) 0%, var(--ink-2) 100%);
+  margin-bottom:34px;
+  overflow:hidden;
+}
+.cv-panel::before{
+  content:'';
+  position:absolute; bottom:-30%; left:-10%;
+  width:320px; height:320px; border-radius:50%;
+  background:radial-gradient(circle, var(--mark-dim), transparent 70%);
+  pointer-events:none;
+}
+.cv-tagline{ font-family:var(--font-display); font-style:italic; color:var(--mark); font-size:1.3rem; font-weight:500; margin-bottom:16px; position:relative; }
+.cv-panel p{ position:relative; }
+.cv-tree{
+  display:flex; flex-wrap:wrap; align-items:center; gap:10px;
+  margin-top:22px; font-family:var(--font-mono); font-size:.83rem;
+  position:relative;
+}
+.cv-tree .node{ padding:6px 13px; border-radius:20px; border:1px solid var(--rule); color:var(--text-dim); background:var(--paper-raised); }
+.cv-tree .node.parent{ color:var(--text); border-color:var(--mark-line); }
+.cv-tree .node.current{ color:var(--mark); border-color:var(--mark-line); background:var(--mark-dim); font-weight:600; }
+.cv-tree .arrow{ color:var(--muted-2); }
+
+.suite-grid{ display:grid; grid-template-columns:repeat(auto-fill, minmax(220px,1fr)); gap:12px; margin-top:24px; }
+.suite-card{
+  display:flex; align-items:center; gap:12px;
+  padding:15px 16px; border-radius:var(--radius-sm);
+  background:var(--paper); border:1px solid var(--rule);
+  color:var(--text-dim); transition:all .15s;
+}
+a.suite-card:hover{ border-color:var(--mark-line); background:var(--paper-raised); transform:translateY(-2px); text-decoration:none; }
+.suite-card .sc-icon{ width:36px; height:36px; border-radius:9px; background:var(--paper-raised); border:1px solid var(--rule); display:flex; align-items:center; justify-content:center; font-size:1rem; flex-shrink:0; }
+.suite-card .sc-name{ font-weight:700; color:var(--text); font-size:.87rem; }
+.suite-card .sc-cta{ font-size:.74rem; color:var(--muted); margin-top:1px; }
+.suite-card.current{ border-color:var(--mark-line); background:var(--mark-dim); cursor:default; }
+.suite-card.current .sc-icon{ background:rgba(232,163,61,.18); border-color:var(--mark-line); color:var(--mark); }
+.suite-card.current .sc-cta{ color:var(--mark); font-weight:600; }
+
+/* before / after comparison */
+.compare-grid{ display:grid; grid-template-columns:1fr 1fr; gap:16px; margin:24px 0 32px; }
+@media (max-width:640px){ .compare-grid{ grid-template-columns:1fr; } }
+.compare-col{ border-radius:var(--radius); border:1px solid var(--rule); padding:22px 22px 8px; }
+.compare-col.old{ background:var(--paper); }
+.compare-col.new{ background:linear-gradient(155deg, var(--mark-dim), var(--paper) 60%); border-color:var(--mark-line); }
+.compare-label{ display:inline-flex; align-items:center; gap:7px; font-family:var(--font-mono); font-size:.68rem; letter-spacing:.08em; text-transform:uppercase; padding:4px 10px; border-radius:20px; margin-bottom:16px; }
+.compare-col.old .compare-label{ background:var(--paper-raised); color:var(--muted); }
+.compare-col.new .compare-label{ background:var(--mark); color:#1A1200; }
+.compare-row{ display:flex; gap:9px; padding:11px 0; border-top:1px solid var(--rule-soft); font-size:.85rem; line-height:1.5; }
+.compare-col .compare-row:first-of-type{ border-top:none; }
+.compare-row .ci{ flex-shrink:0; margin-top:1px; }
+.compare-col.old .compare-row .ci{ color:var(--muted-2); }
+.compare-col.new .compare-row .ci{ color:var(--mark); }
+.compare-col.old .compare-row span:last-child{ color:var(--muted); }
+.compare-col.new .compare-row span:last-child{ color:var(--text-dim); }
+
+/* alternative comparison blocks */
+.alt-block{ border:1px solid var(--rule); border-radius:var(--radius); padding:26px 28px; margin-bottom:16px; background:var(--paper); }
+.alt-head{ display:flex; align-items:center; gap:11px; margin-bottom:6px; }
+.alt-head .icon{ width:36px; height:36px; border-radius:9px; background:var(--paper-raised); border:1px solid var(--rule); display:flex; align-items:center; justify-content:center; font-size:1.05rem; flex-shrink:0; }
+.alt-head .name{ font-family:var(--font-display); font-weight:600; color:var(--text); font-size:1.08rem; }
+.alt-block > .alt-sub{ font-size:.82rem; color:var(--muted); margin:0 0 6px 47px; }
+.alt-item{ padding:14px 0; border-top:1px solid var(--rule-soft); margin-left:0; }
+.alt-block .alt-item:first-of-type{ border-top:1px solid var(--rule-soft); margin-top:14px; }
+.alt-gap{ font-size:.85rem; color:var(--muted); line-height:1.55; margin-bottom:5px; }
+.alt-fix{ font-size:.85rem; color:var(--text-dim); line-height:1.55; display:flex; gap:8px; }
+.alt-fix .arrow{ color:var(--mark); flex-shrink:0; font-weight:600; }
+
+/* utility */
+.mt-0{ margin-top:0 !important; }
+.two-col{ display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+@media (max-width:640px){ .two-col{ grid-template-columns:1fr; } }
+</style>
+</head>
+<body>
+
+<div class="sb-backdrop" id="sbBackdrop"></div>
+
+<header class="topbar">
+  <button class="tb-menu-btn" id="menuBtn" aria-label="Open navigation">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+  </button>
+  <div class="tb-brand">
+    <div class="tb-mark">Sq</div>
+    <span class="tb-name">SkuulQuiz PRO</span>
+    <span class="tb-tag">docs</span>
+  </div>
+  <div class="tb-spacer"></div>
+  <div class="tb-search">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+    <input type="text" id="searchInput" placeholder="Search the docs…">
+    <kbd>/</kbd>
+  </div>
+</header>
+
+<div class="layout">
+  <aside class="sidebar" id="sidebar">
+   <div class="sidebar-inner">
+    <button class="sb-close" id="sbCloseBtn" aria-label="Close navigation">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+    </button>
+    <div class="sb-search-mobile">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+      <input type="text" id="searchInputMobile" placeholder="Search the docs…">
+    </div>
+
+    <nav id="sbNav">
+      <div class="sb-group">
+        <div class="sb-group-label">Start Here</div>
+        <a class="sb-link" data-target="overview"><span class="dot"></span>Overview</a>
+        <a class="sb-link" data-target="what-it-solves"><span class="dot"></span>What It Solves</a>
+        <a class="sb-link" data-target="the-alternatives"><span class="dot"></span>The Alternatives</a>
+        <a class="sb-link" data-target="getting-started"><span class="dot"></span>Getting Started</a>
+      </div>
+      <div class="sb-group">
+        <div class="sb-group-label">Core Concepts</div>
+        <a class="sb-link" data-target="concept-roles"><span class="dot"></span>Roles &amp; Permissions</a>
+        <a class="sb-link" data-target="concept-sessions"><span class="dot"></span>Sessions &amp; Terms</a>
+        <a class="sb-link" data-target="concept-subjects"><span class="dot"></span>Subjects</a>
+        <a class="sb-link" data-target="concept-grading"><span class="dot"></span>Grading Scheme</a>
+      </div>
+      <div class="sb-group">
+        <div class="sb-group-label">Super Admin Guide</div>
+        <a class="sb-link role-super" data-target="sa-account"><span class="dot"></span>Your Account</a>
+        <a class="sb-link role-super" data-target="sa-branding"><span class="dot"></span>School Profile</a>
+        <a class="sb-link role-super" data-target="sa-sessions"><span class="dot"></span>Sessions &amp; Terms</a>
+        <a class="sb-link role-super" data-target="sa-subjects"><span class="dot"></span>Subjects</a>
+        <a class="sb-link role-super" data-target="sa-admins"><span class="dot"></span>Admin Accounts</a>
+        <a class="sb-link role-super" data-target="sa-controls"><span class="dot"></span>System Controls</a>
+        <a class="sb-link role-super" data-target="sa-danger"><span class="dot"></span>Danger Zone</a>
+      </div>
+      <div class="sb-group">
+        <div class="sb-group-label">Admin Guide</div>
+        <a class="sb-link role-admin" data-target="ad-signin"><span class="dot"></span>Signing In</a>
+        <a class="sb-link role-admin" data-target="ad-analytics"><span class="dot"></span>Dashboard &amp; Analytics</a>
+        <a class="sb-link role-admin" data-target="ad-students"><span class="dot"></span>Managing Students</a>
+        <a class="sb-link role-admin" data-target="ad-questions"><span class="dot"></span>Creating Questions</a>
+        <a class="sb-link role-admin" data-target="ad-testsettings"><span class="dot"></span>Test Settings</a>
+        <a class="sb-link role-admin" data-target="ad-scores"><span class="dot"></span>Score Records</a>
+        <a class="sb-link role-admin" data-target="ad-csv"><span class="dot"></span>CSV Editor</a>
+        <a class="sb-link role-admin" data-target="ad-retakes"><span class="dot"></span>Retake Requests</a>
+        <a class="sb-link role-admin" data-target="ad-logs"><span class="dot"></span>Activity Logs</a>
+      </div>
+      <div class="sb-group">
+        <div class="sb-group-label">Student Guide</div>
+        <a class="sb-link role-student" data-target="st-signin"><span class="dot"></span>Signing In</a>
+        <a class="sb-link role-student" data-target="st-taking"><span class="dot"></span>Taking a Test</a>
+        <a class="sb-link role-student" data-target="st-results"><span class="dot"></span>Results &amp; Retakes</a>
+      </div>
+      <div class="sb-group">
+        <div class="sb-group-label">Reference</div>
+        <a class="sb-link" data-target="ref-shortcuts"><span class="dot"></span>Tips &amp; Shortcuts</a>
+        <a class="sb-link" data-target="ref-faq"><span class="dot"></span>FAQ</a>
+        <a class="sb-link" data-target="ref-glossary"><span class="dot"></span>Glossary</a>
+      </div>
+      <div class="sb-group">
+        <div class="sb-group-label">Company</div>
+        <a class="sb-link" data-target="about-codeverse"><span class="dot"></span>CodeVerse &amp; the Skuul Suite</a>
+      </div>
+    </nav>
+   </div>
+  </aside>
+
+  <main class="main">
+
+    <div class="hero">
+      <div class="hero-doc reveal">
+        <div class="hero-stamp">verified<br>build</div>
+        <span class="hero-eyebrow"><span class="pulse"></span>Documentation</span>
+        <h1>Everything <em>SkuulQuiz PRO</em><br>can do — in one place.</h1>
+        <p class="hero-sub">A complete reference for running examinations end to end: build questions, configure tests, collect scores, and read the results — for every role, from setup to results day.</p>
+        <div class="hero-stats">
+          <div class="hero-stat"><div class="hero-stat-val" data-count="3">0</div><div class="hero-stat-lbl">User roles</div></div>
+          <div class="hero-stat"><div class="hero-stat-val" data-count="2">0</div><div class="hero-stat-lbl">Question formats</div></div>
+          <div class="hero-stat"><div class="hero-stat-val" data-count="4">0</div><div class="hero-stat-lbl">Test types per subject</div></div>
+          <div class="hero-stat"><div class="hero-stat-val" data-count="10">0</div><div class="hero-stat-lbl">Analytics charts</div></div>
+        </div>
+      </div>
+    </div>
+
+    <section class="section" id="overview">
+      <div class="section-eyebrow reveal">// 01 — Start Here</div>
+      <h2 class="reveal">Overview</h2>
+      <p class="section-lead reveal">SkuulQuiz PRO is an examination management platform built around one idea: the people setting up a test and the people taking it should each get an interface built for their job, not a compromise between the two.</p>
+
+      <p class="reveal">A school runs on it through three connected roles. A <strong>Super Admin</strong> owns the school itself — its name, its branding, who else has access. An <strong>Admin</strong> runs the day-to-day work of a term: building question banks, opening tests, recording scores. A <strong>Student</strong> only ever sees what they need to: pick a subject, sit the test, see the result.</p>
+
+      <div class="card-grid reveal">
+        <div class="f-card">
+          <div class="fc-icon">📝</div>
+          <div class="fc-title">Two question formats</div>
+          <div class="fc-desc">Multiple choice with 2–8 options, or True/False — mixed freely within the same test.</div>
+        </div>
+        <div class="f-card">
+          <div class="fc-icon">🖼️</div>
+          <div class="fc-title">Image-rich questions</div>
+          <div class="fc-desc">Attach up to four images per question. Students tap to enlarge during the test.</div>
+        </div>
+        <div class="f-card">
+          <div class="fc-icon">⏱️</div>
+          <div class="fc-title">Per-test timing</div>
+          <div class="fc-desc">Set a duration for each subject and test type independently, or leave it untimed.</div>
+        </div>
+        <div class="f-card">
+          <div class="fc-icon">📊</div>
+          <div class="fc-title">Built-in analytics</div>
+          <div class="fc-desc">Ten charts covering performance, timing, and trends — no spreadsheet required.</div>
+        </div>
+        <div class="f-card">
+          <div class="fc-icon">📤</div>
+          <div class="fc-title">CSV &amp; PDF exports</div>
+          <div class="fc-desc">Move scores into your own systems, or generate a printable, ranked score sheet.</div>
+        </div>
+        <div class="f-card">
+          <div class="fc-icon">🔁</div>
+          <div class="fc-title">Retake workflow</div>
+          <div class="fc-desc">Students can request a second attempt; admins approve or decline from one screen.</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="what-it-solves">
+      <div class="section-eyebrow reveal">// 02 — Start Here</div>
+      <h2 class="reveal">What It Solves</h2>
+      <p class="section-lead reveal">Most schools don't lack tools — they have too many of them. A question bank in one document, scores in a spreadsheet, results printed by hand, and no single place that shows the whole picture. SkuulQuiz PRO exists to collapse that into one system that covers a test's entire life, from the first question written to the last chart read.</p>
+
+      <div class="compare-grid reveal">
+        <div class="compare-col old">
+          <span class="compare-label">✕ The scattered way</span>
+          <div class="compare-row"><span class="ci">✕</span><span>Scores live across spreadsheets, paper registers, and whoever's laptop has the latest version</span></div>
+          <div class="compare-row"><span class="ci">✕</span><span>Paper results get re-typed into a gradebook by hand, mistakes and all</span></div>
+          <div class="compare-row"><span class="ci">✕</span><span>Seeing a trend means building your own chart from scratch, if anyone gets around to it</span></div>
+          <div class="compare-row"><span class="ci">✕</span><span>One shared login — no way to tell who changed a score, or when</span></div>
+          <div class="compare-row"><span class="ci">✕</span><span>Retakes get handled by word of mouth, with nothing written down</span></div>
+          <div class="compare-row"><span class="ci">✕</span><span>Every result sheet formatted by hand before it can be printed or shared</span></div>
+        </div>
+        <div class="compare-col new">
+          <span class="compare-label">✓ With SkuulQuiz PRO</span>
+          <div class="compare-row"><span class="ci">✓</span><span>Every score lives in one place, searchable by student, subject, or term</span></div>
+          <div class="compare-row"><span class="ci">✓</span><span>Manual entry and CSV import feed the same system a live test does — nothing re-typed twice</span></div>
+          <div class="compare-row"><span class="ci">✓</span><span>Ten charts update automatically the moment a score is recorded</span></div>
+          <div class="compare-row"><span class="ci">✓</span><span>Every score carries a source badge and sits in an activity log — an honest record of who did what</span></div>
+          <div class="compare-row"><span class="ci">✓</span><span>Retakes go through a request-and-approval flow, visible to everyone involved</span></div>
+          <div class="compare-row"><span class="ci">✓</span><span>Branded, ranked PDF score sheets, generated in one tap</span></div>
+        </div>
+      </div>
+
+      <h3>Built around how a term actually runs</h3>
+      <p>The design choices below aren't features for their own sake — each one exists because of a specific, ordinary way this kind of system usually breaks.</p>
+
+      <div class="card-grid reveal">
+        <div class="f-card">
+          <div class="fc-icon">🧩</div>
+          <div class="fc-title">One system, start to finish</div>
+          <div class="fc-desc">Question banking, testing, scoring, and analytics stay in one place — nothing to export, re-import, or keep in sync between separate tools.</div>
+        </div>
+        <div class="f-card">
+          <div class="fc-icon">🪪</div>
+          <div class="fc-title">Interfaces built per role</div>
+          <div class="fc-desc">A Super Admin, an Admin, and a Student never see the same screen — because they're never trying to do the same job.</div>
+        </div>
+        <div class="f-card">
+          <div class="fc-icon">🌉</div>
+          <div class="fc-title">Bridges paper and digital</div>
+          <div class="fc-desc">A test taken on paper and a test taken live end up in the exact same record, with the exact same exports — the system doesn't care which one happened.</div>
+        </div>
+        <div class="f-card">
+          <div class="fc-icon">🧾</div>
+          <div class="fc-title">Nothing changes quietly</div>
+          <div class="fc-desc">Source badges and activity logs mean a corrected score is still traceable to what it was corrected from — no silent overwrites.</div>
+        </div>
+        <div class="f-card">
+          <div class="fc-icon">🗂️</div>
+          <div class="fc-title">Non-destructive by default</div>
+          <div class="fc-desc">Removing a session tidies a dropdown, not your records. Deleting real data is a deliberate, separate, clearly-labeled action.</div>
+        </div>
+        <div class="f-card">
+          <div class="fc-icon">📶</div>
+          <div class="fc-title">Built for real conditions</div>
+          <div class="fc-desc">Images compress automatically on upload, answers auto-save through the test, and a lost connection doesn't cost a student their progress.</div>
+        </div>
+      </div>
+
+      <div class="callout note reveal">
+        <div class="co-icon">🎯</div>
+        <div class="co-body"><div class="co-title">What this page won't do</div>Claim it's the only option, or the best one for every school. It's built with specific, deliberate opinions about how a term should run — read through the guides below and judge for yourself whether those opinions match how your school actually works.</div>
+      </div>
+    </section>
+
+    <section class="section" id="the-alternatives">
+      <div class="section-eyebrow reveal">// 03 — Start Here</div>
+      <h2 class="reveal">The Alternatives — and Where They Break</h2>
+      <p class="section-lead reveal">Almost no school starts from nothing. Most already run on some mix of paper, spreadsheets, a generic form or quiz tool, and a lot of coordination over chat. Each of those works, up to a point. Here's specifically where that point tends to be — not as a knock on any of them, but as the actual reasoning behind what got built here instead.</p>
+
+      <div class="alt-block reveal">
+        <div class="alt-head"><div class="icon">📄</div><div class="name">Paper &amp; manual marking</div></div>
+        <div class="alt-sub">The original system, and still the most common one.</div>
+
+        <div class="alt-item">
+          <div class="alt-gap">Totaling a score is manual arithmetic, every single time — one mis-add and the result is wrong.</div>
+          <div class="alt-fix"><span class="arrow">→</span><span>Objective questions are scored the instant they're marked. There's no manual totaling step left to get wrong.</span></div>
+        </div>
+        <div class="alt-item">
+          <div class="alt-gap">A lost, damaged, or misplaced answer sheet is a lost result, with nothing to fall back on.</div>
+          <div class="alt-fix"><span class="arrow">→</span><span>Once a test is submitted or a score is entered, it exists as a record. There's no physical object left to lose.</span></div>
+        </div>
+        <div class="alt-item">
+          <div class="alt-gap">Spotting a pattern across a stack of scripts — which question tripped everyone up, which students are slipping — takes manual tallying that rarely happens in practice.</div>
+          <div class="alt-fix"><span class="arrow">→</span><span>The same data renders as charts automatically. Nothing needs to be tallied by hand to see it.</span></div>
+        </div>
+        <div class="alt-item">
+          <div class="alt-gap">Retakes get arranged verbally, with no record of who agreed to what, or when.</div>
+          <div class="alt-fix"><span class="arrow">→</span><span>A retake is a logged request with an explicit accept or reject — there's always a record to point back to.</span></div>
+        </div>
+      </div>
+
+      <div class="alt-block reveal">
+        <div class="alt-head"><div class="icon">📊</div><div class="name">Spreadsheets</div></div>
+        <div class="alt-sub">Where most digital score-keeping actually lives.</div>
+
+        <div class="alt-item">
+          <div class="alt-gap">A spreadsheet has no concept of roles — anyone with the file can see, and usually edit, everything in it.</div>
+          <div class="alt-fix"><span class="arrow">→</span><span>Every account is scoped by role. A student can never see another student's data; an Admin never reaches Super Admin-only controls.</span></div>
+        </div>
+        <div class="alt-item">
+          <div class="alt-gap">It's a ledger, not an exam room — it stores a result after the fact, but something else still has to actually administer the test.</div>
+          <div class="alt-fix"><span class="arrow">→</span><span>One system runs the test and stores the result. There's nothing separate to reconcile.</span></div>
+        </div>
+        <div class="alt-item">
+          <div class="alt-gap">Formulas can be edited or broken by anyone with access, and a broken formula often fails silently — a wrong total that looks right until someone checks.</div>
+          <div class="alt-fix"><span class="arrow">→</span><span>Question marks and test totals are structural, not formula-dependent. There's no cell to accidentally overwrite.</span></div>
+        </div>
+        <div class="alt-item">
+          <div class="alt-gap">Two people editing the same file at once risk overwriting each other's changes, usually without any warning that it happened.</div>
+          <div class="alt-fix"><span class="arrow">→</span><span>Every edit is scoped to the person who made it and logged individually — simultaneous work doesn't collide invisibly.</span></div>
+        </div>
+        <div class="alt-item">
+          <div class="alt-gap">There's no built-in trail of who changed a number and when, unless someone separately sets up version history.</div>
+          <div class="alt-fix"><span class="arrow">→</span><span>Every score carries a source badge and an entry in the activity log, with no extra setup required.</span></div>
+        </div>
+      </div>
+
+      <div class="alt-block reveal">
+        <div class="alt-head"><div class="icon">🧷</div><div class="name">Generic online quiz &amp; form builders</div></div>
+        <div class="alt-sub">Built for one-off surveys and single quizzes, then stretched to cover a full term.</div>
+
+        <div class="alt-item">
+          <div class="alt-gap">Built around a single one-off quiz or survey, not a recurring, term-long grading structure.</div>
+          <div class="alt-fix"><span class="arrow">→</span><span>First Test, Second Test, Third Test, and Exam each carry a fixed, consistent total from the start — the structure is native, not something you configure by hand each time.</span></div>
+        </div>
+        <div class="alt-item">
+          <div class="alt-gap">Responses usually land in one flat list, not organized by subject, term, or test type.</div>
+          <div class="alt-fix"><span class="arrow">→</span><span>Every score is scoped to exactly those three from the moment it's recorded.</span></div>
+        </div>
+        <div class="alt-item">
+          <div class="alt-gap">Rarely stop the same person submitting the same quiz more than once, unless someone builds that restriction in separately.</div>
+          <div class="alt-fix"><span class="arrow">→</span><span>Duplicate submissions are blocked by default — a formal retake request is the only way past it.</span></div>
+        </div>
+        <div class="alt-item">
+          <div class="alt-gap">A test taken on paper stays completely disconnected from the ones taken digitally — two separate records, two separate places to look.</div>
+          <div class="alt-fix"><span class="arrow">→</span><span>Manually entered and digitally submitted scores land in the exact same record, told apart only by a small source badge.</span></div>
+        </div>
+        <div class="alt-item">
+          <div class="alt-gap">Where image support exists at all, it's rarely built for several images on one question with automatic size handling — large files either aren't supported or slow everything down.</div>
+          <div class="alt-fix"><span class="arrow">→</span><span>Up to four images per question, compressed automatically the moment they're uploaded.</span></div>
+        </div>
+      </div>
+
+      <div class="alt-block reveal">
+        <div class="alt-head"><div class="icon">💬</div><div class="name">Chat apps &amp; word of mouth</div></div>
+        <div class="alt-sub">How most of the coordination actually happens, tool or no tool.</div>
+
+        <div class="alt-item">
+          <div class="alt-gap">A retake request becomes a conversation with no timestamp and no way to check back later on who agreed to what.</div>
+          <div class="alt-fix"><span class="arrow">→</span><span>It's a logged request with an explicit accept or reject action attached to it.</span></div>
+        </div>
+        <div class="alt-item">
+          <div class="alt-gap">Sharing a class's results usually means a screenshot or a message typed out by hand, reformatted from scratch every time.</div>
+          <div class="alt-fix"><span class="arrow">→</span><span>A branded, ranked, printable score sheet is one tap away.</span></div>
+        </div>
+        <div class="alt-item">
+          <div class="alt-gap">There's no single place to check "did this actually happen" — it's scattered across whichever conversation it happened in.</div>
+          <div class="alt-fix"><span class="arrow">→</span><span>Every action lands in one activity log, in order, and stays searchable.</span></div>
+        </div>
+      </div>
+
+      <div class="callout tip reveal">
+        <div class="co-icon">⚖️</div>
+        <div class="co-body"><div class="co-title">A fair caveat</div>Broad, general-purpose learning platforms exist too, and plenty of them do combine content, discussion, and assessment in one place. That breadth is exactly the tradeoff — when a tool is built to also be a course library and a forum and a content hub, the testing-specific pieces are usually one feature among many rather than the focus. A tool built only around running tests doesn't have to make that compromise.</div>
+      </div>
+
+      <p class="reveal">None of this means paper, a spreadsheet, or a quick form is the wrong call for a single one-off quiz — they're not. The seams above tend to show up specifically once testing becomes routine: several subjects, several terms, more than one person involved. That's the exact gap this was built to close.</p>
+    </section>
+
+    <section class="section" id="getting-started">
+      <div class="section-eyebrow reveal">// 04 — Start Here</div>
+      <h2 class="reveal">Getting Started</h2>
+      <p class="section-lead reveal">Where you start depends on your role. Pick the one that's you — each guide below is self-contained.</p>
+
+      <div class="two-col reveal">
+        <div class="role-banner super" style="cursor:pointer" onclick="document.getElementById('sa-account').scrollIntoView({behavior:'smooth'})">
+          <div class="rb-icon">🔑</div>
+          <div class="rb-text"><div class="rb-title">I'm setting up a school</div><div class="rb-sub">Start with Super Admin →</div></div>
+        </div>
+        <div class="role-banner admin" style="cursor:pointer" onclick="document.getElementById('ad-signin').scrollIntoView({behavior:'smooth'})">
+          <div class="rb-icon">🗂️</div>
+          <div class="rb-text"><div class="rb-title">I'm running tests day-to-day</div><div class="rb-sub">Start with Admin →</div></div>
+        </div>
+      </div>
+      <div class="role-banner student reveal" style="cursor:pointer" onclick="document.getElementById('st-signin').scrollIntoView({behavior:'smooth'})">
+        <div class="rb-icon">🎓</div>
+        <div class="rb-text"><div class="rb-title">I'm a student taking a test</div><div class="rb-sub">Start with the Student Guide →</div></div>
+      </div>
+
+      <div class="callout tip reveal">
+        <div class="co-icon">💡</div>
+        <div class="co-body"><div class="co-title">New school checklist</div>Create your Super Admin account → set your school name and logo → add a Session and Term → add your subjects → create an Admin account (optional, if someone else will build tests) → add students. That order matters: most screens ask you to have a Session and Term selected before they'll let you add anything else.</div>
+      </div>
+    </section>
+
+    <hr class="divider">
+
+    <section class="section" id="concept-roles">
+      <div class="section-eyebrow reveal">// 05 — Core Concepts</div>
+      <h2 class="reveal">Roles &amp; Permissions</h2>
+      <p class="section-lead reveal">Every account is one of three roles. Permissions are enforced by role, not by convention — a Student account can never see the Admin dashboard, and an Admin can never reach Super Admin-only screens.</p>
+
+      <div class="tbl-wrap reveal">
+        <table class="doc-table">
+          <thead><tr><th>Capability</th><th>Super Admin</th><th>Admin</th><th>Student</th></tr></thead>
+          <tbody>
+            <tr><td>Sign in with</td><td>Email &amp; password</td><td>Username, School Email &amp; password</td><td>School ID, Matric Number &amp; password</td></tr>
+            <tr><td>Set school name &amp; logo</td><td>✓</td><td>—</td><td>—</td></tr>
+            <tr><td>Create Admin accounts</td><td>✓</td><td>—</td><td>—</td></tr>
+            <tr><td>Toggle login access</td><td>✓</td><td>—</td><td>—</td></tr>
+            <tr><td>Add Sessions &amp; Terms</td><td>✓</td><td>✓</td><td>—</td></tr>
+            <tr><td>Add subjects</td><td>✓</td><td>✓</td><td>—</td></tr>
+            <tr><td>Add students</td><td>✓</td><td>✓</td><td>—</td></tr>
+            <tr><td>Create questions &amp; tests</td><td>✓</td><td>✓</td><td>—</td></tr>
+            <tr><td>Record &amp; edit scores</td><td>✓</td><td>✓</td><td>—</td></tr>
+            <tr><td>View analytics</td><td>✓</td><td>✓</td><td>—</td></tr>
+            <tr><td>Delete all school data</td><td>✓</td><td>—</td><td>—</td></tr>
+            <tr><td>Take a test</td><td>—</td><td>—</td><td>✓</td></tr>
+            <tr><td>Request a retake</td><td>—</td><td>—</td><td>✓</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="callout note reveal">
+        <div class="co-icon">🗂️</div>
+        <div class="co-body"><div class="co-title">Multiple admins, one school</div>A Super Admin can create as many Admin accounts as needed — useful if different staff members handle different subjects or terms. Every Admin created this way belongs to that Super Admin's school and shares the same students, subjects, and score records.</div>
+      </div>
+    </section>
+
+    <section class="section" id="concept-sessions">
+      <div class="section-eyebrow reveal">// 05 — Core Concepts</div>
+      <h2 class="reveal">Sessions &amp; Terms</h2>
+      <p class="section-lead reveal">All academic data — students, questions, and scores — is organized under a <strong>Session</strong> (e.g. an academic year) and a <strong>Term</strong> within it. This keeps years and terms from bleeding into each other.</p>
+      <p class="reveal">You'll always have one <strong>active</strong> Session and Term selected — it's shown at the top of every screen that depends on it. Switching the active Session/Term instantly switches the students, questions, and scores you're looking at, without deleting anything from the one you switched away from.</p>
+      <div class="callout tip reveal">
+        <div class="co-icon">💡</div>
+        <div class="co-body"><div class="co-title">Removing a session is non-destructive</div>Deleting a Session only removes it from your dropdown list. Everything recorded under it — students, tests, scores — stays intact in storage. If you ever re-add a Session with the exact same name, that data reconnects automatically.</div>
+      </div>
+    </section>
+
+    <section class="section" id="concept-subjects">
+      <div class="section-eyebrow reveal">// 05 — Core Concepts</div>
+      <h2 class="reveal">Subjects</h2>
+      <p class="section-lead reveal">Subjects are scoped to a Session and Term — add them once per term, and every question, test, and score record hangs off a subject name.</p>
+      <p class="reveal">Subject names are automatically standardized when you add them: trimmed of extra spaces and set to uppercase. This exists for one reason — <span class="chip">Mathematics</span>, <span class="chip">mathematics</span>, and <span class="chip">Mathematics&nbsp;&nbsp;</span> would otherwise be treated as three different subjects by anything that groups or charts by subject name, quietly splitting your data. Standardizing on entry means that never happens.</p>
+    </section>
+
+    <section class="section" id="concept-grading">
+      <div class="section-eyebrow reveal">// 05 — Core Concepts</div>
+      <h2 class="reveal">Grading Scheme</h2>
+      <p class="section-lead reveal">Every subject is assessed across four test types in a term. Each one carries a fixed maximum score, so results are comparable across subjects and across the whole school.</p>
+
+      <div class="tbl-wrap reveal">
+        <table class="doc-table">
+          <thead><tr><th>Test type</th><th>Maximum score</th><th>Typical use</th></tr></thead>
+          <tbody>
+            <tr><td>First Test</td><td><strong>20</strong></td><td>Early-term continuous assessment</td></tr>
+            <tr><td>Second Test</td><td><strong>20</strong></td><td>Mid-term continuous assessment</td></tr>
+            <tr><td>Third Test</td><td><strong>20</strong></td><td>Late-term continuous assessment</td></tr>
+            <tr><td>Exam</td><td><strong>60</strong></td><td>End-of-term examination</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="reveal">A student's full-term picture for a subject is the sum of all four: <span class="chip">20 + 20 + 20 + 60 = 100</span>. Question marks within a test are up to whoever builds it — the app doesn't force an even split, only that the test type's total is what appears on score sheets and exports.</p>
+    </section>
+
+    <hr class="divider">
+
+    <section class="section" id="sa-account">
+      <div class="section-eyebrow reveal">// 06 — Super Admin Guide</div>
+      <div class="role-banner super reveal">
+        <div class="rb-icon">🔑</div>
+        <div class="rb-text"><div class="rb-title">Super Admin</div><div class="rb-sub">Owns the school — branding, access, and the accounts underneath it</div></div>
+      </div>
+      <h2 class="reveal">Your Account</h2>
+      <p class="section-lead reveal">A Super Admin account is the root of a school on SkuulQuiz PRO. Everything else — Admins, students, subjects, tests — exists underneath one.</p>
+
+      <div class="subsection" id="sa-account-create">
+        <h3>Creating an account</h3>
+        <ol>
+          <li>From the sign-in screen, switch to the registration tab.</li>
+          <li>Enter your full name and a valid email address — this becomes how you sign in, so it needs to be one you have access to.</li>
+          <li>Choose a username and set a password.</li>
+          <li>Submit. You're signed in immediately, with a fresh school ready to configure.</li>
+        </ol>
+      </div>
+
+      <div class="subsection" id="sa-account-signin">
+        <h3>Signing in</h3>
+        <p>Super Admins sign in with <strong>email and password</strong>. Use the eye icon on the password field if you want to confirm what you've typed before submitting.</p>
+      </div>
+    </section>
+
+    <section class="section" id="sa-branding">
+      <div class="section-eyebrow reveal">// 06 — Super Admin Guide</div>
+      <h2 class="reveal">School Profile</h2>
+      <p class="section-lead reveal">Your school's identity — name and logo — appears wherever it's relevant: the account menu, the profile page, and on exported score sheets.</p>
+      <ul>
+        <li><strong>School name</strong> — set from Settings. Used as the header on every PDF score sheet you export.</li>
+        <li><strong>Logo</strong> — upload an image and it's automatically resized and optimized for storage before saving. Once set, it also becomes your account avatar throughout the interface — no separate upload needed.</li>
+      </ul>
+      <div class="callout tip reveal">
+        <div class="co-icon">🖼️</div>
+        <div class="co-body"><div class="co-title">Transparent logos stay transparent</div>If you upload a PNG with a transparent background, the transparency is preserved through the resizing step — it won't be flattened onto a solid color the way some image processors do.</div>
+      </div>
+    </section>
+
+    <section class="section" id="sa-sessions">
+      <div class="section-eyebrow reveal">// 06 — Super Admin Guide</div>
+      <h2 class="reveal">Sessions &amp; Terms</h2>
+      <p class="section-lead reveal">Set these up before anything else — most of the app assumes an active Session and Term exist.</p>
+      <ol>
+        <li>Open Settings and find the Session field.</li>
+        <li>Type a new session name (for example, a year range) and select <strong>Add</strong>.</li>
+        <li>Choose a Term from the list next to it.</li>
+        <li>Save. This pair is now your active context everywhere else in the app.</li>
+      </ol>
+      <p>To remove a session you no longer need in the dropdown, select it and use the delete control beside the list. As covered in Core Concepts, this only tidies the list — the underlying records are kept.</p>
+    </section>
+
+    <section class="section" id="sa-subjects">
+      <div class="section-eyebrow reveal">// 06 — Super Admin Guide</div>
+      <h2 class="reveal">Subjects</h2>
+      <p class="section-lead reveal">Add every subject your school teaches for the active Session and Term — Admins will build question banks and record scores against exactly these names.</p>
+      <ol>
+        <li>In Settings, find the Subjects field.</li>
+        <li>Type a subject name and add it. It's automatically trimmed and capitalized for consistency.</li>
+        <li>Repeat for each subject, then save.</li>
+      </ol>
+      <p>Subjects can be removed the same way they're added, as long as no question bank or score record still depends on them — remove usage first if you need to retire one mid-term.</p>
+    </section>
+
+    <section class="section" id="sa-admins">
+      <div class="section-eyebrow reveal">// 06 — Super Admin Guide</div>
+      <h2 class="reveal">Admin Accounts</h2>
+      <p class="section-lead reveal">If you're not the only person managing tests, create an Admin (ADM) account for each additional staff member.</p>
+      <ol>
+        <li>Go to the Admins tab (Super Admin only).</li>
+        <li>Select <strong>Add Admin</strong>.</li>
+        <li>Set a username and password for them — they'll also need your school email to sign in, so make sure they have it.</li>
+        <li>Save. The account is active immediately.</li>
+      </ol>
+      <p>From the same screen you can edit an Admin's password, deactivate their access without deleting the account, or remove them entirely.</p>
+      <div class="callout note reveal">
+        <div class="co-icon">🪪</div>
+        <div class="co-body"><div class="co-title">How Admins sign in</div>An Admin enters <strong>their own username</strong>, <strong>your school email</strong> (to identify which school they belong to), and their password. This is different from your own Super Admin sign-in, which uses only email and password.</div>
+      </div>
+    </section>
+
+    <section class="section" id="sa-controls">
+      <div class="section-eyebrow reveal">// 06 — Super Admin Guide</div>
+      <h2 class="reveal">System Controls</h2>
+      <p class="section-lead reveal">Two independent switches in Settings let you cut off access without touching any data — useful during a break, a lockdown, or while you're mid-setup and not ready for anyone to sign in yet.</p>
+      <div class="tbl-wrap reveal">
+        <table class="doc-table">
+          <thead><tr><th>Switch</th><th>When OFF</th><th>Who's affected</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Student Login Access</strong></td><td>No student under your school can sign in</td><td>Students only — Admins are unaffected</td></tr>
+            <tr><td><strong>Admin Login Access</strong></td><td>No Admin under your school can sign in</td><td>Admins only — students are unaffected</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>Both switches are scoped to your school only — turning either off never affects other schools on the platform. Your own Super Admin sign-in is never blocked by either switch.</p>
+    </section>
+
+    <section class="section" id="sa-danger">
+      <div class="section-eyebrow reveal">// 06 — Super Admin Guide</div>
+      <h2 class="reveal">Danger Zone</h2>
+      <div class="callout warn reveal">
+        <div class="co-icon">⚠️</div>
+        <div class="co-body"><div class="co-title">Delete All My Data</div>Permanently removes every student, question, score, subject, and session tied to your school. Your Super Admin account itself stays active so you can start fresh. This action cannot be undone — there is no confirmation beyond the one prompt, and no recovery afterward.</div>
+      </div>
+      <p>Before using this, consider exporting your score records as CSV or PDF from the Scores tab if there's any chance you'll want the history later.</p>
+    </section>
+
+    <hr class="divider">
+
+    <section class="section" id="ad-signin">
+      <div class="section-eyebrow reveal">// 07 — Admin Guide</div>
+      <div class="role-banner admin reveal">
+        <div class="rb-icon">🗂️</div>
+        <div class="rb-text"><div class="rb-title">Admin</div><div class="rb-sub">Builds tests, manages students, and records results — day to day</div></div>
+      </div>
+      <h2 class="reveal">Signing In</h2>
+      <p class="section-lead reveal">Admin sign-in needs three things: your username, the school email of the Super Admin who created your account, and your password.</p>
+      <p>If sign-in is unexpectedly refused, check with your Super Admin — Admin access can be switched off independently of student access, without any other visible sign that it's happened.</p>
+    </section>
+
+    <section class="section" id="ad-analytics">
+      <div class="section-eyebrow reveal">// 07 — Admin Guide</div>
+      <h2 class="reveal">Dashboard &amp; Analytics</h2>
+      <p class="section-lead reveal">The Analytics tab is the first thing you see after signing in — a read-only summary of every score recorded for the active Session and Term.</p>
+
+      <h4>Headline numbers</h4>
+      <ul>
+        <li><strong>Total Attempts</strong> — every test submission recorded</li>
+        <li><strong>Unique Students</strong> — distinct students who've submitted at least one test</li>
+        <li><strong>Average Score</strong> — mean score as a percentage, across all subjects and test types</li>
+        <li><strong>Pass Rate</strong> — share of submissions at 50% or above</li>
+        <li><strong>Subjects Covered</strong> — how many subjects have at least one recorded score</li>
+      </ul>
+
+      <h4>Charts</h4>
+      <p>Ten charts break the same data down from different angles: a submission timeline, subject-by-subject comparison, score distribution, test type mix, submission hours, top performers, grade distribution, pass/fail split, a monthly trend, and a day-of-week pattern. Together they answer questions a single table can't — like whether a subject's average is drifting term over term, or when students are actually sitting tests.</p>
+      <div class="callout note reveal">
+        <div class="co-icon">📊</div>
+        <div class="co-body"><div class="co-title">Empty until there's data</div>Analytics only has something to show once at least one score exists for the active Session and Term. Record or import a few scores first if the dashboard looks empty.</div>
+      </div>
+    </section>
+
+    <section class="section" id="ad-students">
+      <div class="section-eyebrow reveal">// 07 — Admin Guide</div>
+      <h2 class="reveal">Managing Students</h2>
+      <p class="section-lead reveal">Students are added per Session and Term, with a login ID, a matric number, a password, and the subjects they're enrolled in.</p>
+      <ol>
+        <li>Open the Students tab and select <strong>Add Student</strong>.</li>
+        <li>Enter their name and matric number — this is what they'll type to sign in.</li>
+        <li>Set an initial password (they can be given this directly; there's no separate reset-by-email flow).</li>
+        <li>Select which subjects they're enrolled in.</li>
+        <li>Save.</li>
+      </ol>
+      <p>The student list scrolls within its own panel rather than stretching the page — useful once a class list runs into the hundreds. Each entry can be edited or removed individually.</p>
+    </section>
+
+    <section class="section" id="ad-questions">
+      <div class="section-eyebrow reveal">// 07 — Admin Guide</div>
+      <h2 class="reveal">Creating Questions</h2>
+      <p class="section-lead reveal">Every question belongs to one subject and one test type. Build a full bank before opening that test to students.</p>
+
+      <h4>Question type</h4>
+      <p>Toggle between <strong>Multiple Choice</strong> and <strong>True/False</strong> at the top of the form. Multiple choice starts at 4 options but can be narrowed to 2 or expanded up to 8 using <span class="chip">+ Add Option</span> and the remove control on each row. True/False fixes the two options for you.</p>
+
+      <h4>Marking the correct answer</h4>
+      <p>Tap the circle beside the correct option — there's no need to retype the answer text separately, and no risk of a typo breaking the match between what you meant and what gets scored.</p>
+
+      <h4>Images</h4>
+      <p>Attach up to <strong>4 images</strong> per question, 2MB each at upload. Every image is automatically compressed before it's stored, so a full-resolution phone photo doesn't balloon the size of your question bank. During the test, students see a single image inline, or a horizontal gallery if there's more than one — tapping any image opens it full-screen.</p>
+
+      <h4>Explanation</h4>
+      <p>An optional field shown to the student after they submit, alongside whether they got the question right. Leave it blank for questions that don't need one — it's never required.</p>
+
+      <div class="callout tip reveal">
+        <div class="co-icon">✓</div>
+        <div class="co-body"><div class="co-title">Duplicate detection</div>If you add a question with text that already exists in that test, you'll be asked to confirm before it's added a second time — a quiet safeguard against re-adding the same question after a page refresh.</div>
+      </div>
+    </section>
+
+    <section class="section" id="ad-testsettings">
+      <div class="section-eyebrow reveal">// 07 — Admin Guide</div>
+      <h2 class="reveal">Test Settings</h2>
+      <p class="section-lead reveal">Duration and instructions are set independently for every subject + test type combination — a 30-minute First Test and an untimed Exam for the same subject can coexist without conflict.</p>
+      <ul>
+        <li><strong>Duration</strong> — in seconds. Set to <span class="chip">0</span> for no time limit.</li>
+        <li><strong>Instructions</strong> — free text shown to the student before they begin, for anything specific to that test.</li>
+      </ul>
+      <p>These settings save per combination and override any default — changing the Exam's duration never touches the First Test's.</p>
+    </section>
+
+    <section class="section" id="ad-scores">
+      <div class="section-eyebrow reveal">// 07 — Admin Guide</div>
+      <h2 class="reveal">Score Records</h2>
+      <p class="section-lead reveal">Every submitted test lands here automatically, grouped by subject. Scores that didn't come from a live test — a paper exam, a verbal assessment, anything done outside the app — can be added the same way.</p>
+
+      <h4>Viewing scores</h4>
+      <p>Each subject's records sit in their own scrollable panel with a fixed height and a header that stays pinned as you scroll — so a subject with a thousand records never forces you to scroll past all of them just to reach the next subject.</p>
+
+      <h4>Manual Score Entry</h4>
+      <p>Select <strong>Add Manual Score</strong> to open a compact form: pick a registered student (or type details for someone not yet in the roster), subject, test type, score, and total marks. It saves exactly like a real submission — it appears in Analytics, exports, and blocks that student from also taking the test electronically, since a result already exists.</p>
+
+      <h4>Editing a record</h4>
+      <p>Every row has an edit control that reopens the same form, pre-filled. Every score record also carries a small badge showing where it came from:</p>
+      <table class="doc-table" style="margin:16px 0"><tbody>
+        <tr><td style="width:140px"><span class="src-badge src-quiz">🖥️ Quiz</span></td><td>Submitted live by a student</td></tr>
+        <tr><td><span class="src-badge src-manual">📝 Manual</span></td><td>Entered by hand for a test taken outside the app</td></tr>
+        <tr><td><span class="src-badge src-edited">✏️ Edited</span></td><td>A quiz submission that's since been corrected</td></tr>
+        <tr><td><span class="src-badge src-csv">📤 CSV</span></td><td>Brought in through the CSV Editor</td></tr>
+      </tbody></table>
+      <p>The badge updates automatically based on history — correcting a live quiz submission relabels it <span class="src-badge src-edited">✏️ Edited</span> rather than hiding that it was ever a real attempt; correcting a manual or CSV record leaves its original label alone.</p>
+
+      <h4>Exporting</h4>
+      <div class="two-col">
+        <div class="f-card">
+          <div class="fc-icon">⬇</div>
+          <div class="fc-title">CSV</div>
+          <div class="fc-desc">One click per subject and test type. Filename format: <span class="chip">TestType_Subject.csv</span> — matches what external systems expect.</div>
+        </div>
+        <div class="f-card">
+          <div class="fc-icon">📄</div>
+          <div class="fc-title">PDF</div>
+          <div class="fc-desc">A branded, ranked, paginated score sheet — your school name and logo at the top, ready to print or share as-is.</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="ad-csv">
+      <div class="section-eyebrow reveal">// 07 — Admin Guide</div>
+      <h2 class="reveal">CSV Editor</h2>
+      <p class="section-lead reveal">A dedicated tab for bulk-editing scores — upload a spreadsheet, correct it in a live grid, and save straight back to score records.</p>
+      <ol>
+        <li>Open the CSV Editor tab and choose the subject and test type you're working with. Total marks fills in automatically based on the test type.</li>
+        <li>Either upload a CSV file, or select <strong>load from existing scores</strong> to pull already-saved records into the grid without needing a file at all.</li>
+        <li>Rows with a problem — a missing ID, a non-numeric or out-of-range score — are flagged immediately.</li>
+        <li>Tap the pencil on any row to edit it in a focused popup: Student ID, name, and score. Confirm to update the grid.</li>
+        <li>Use <strong>+ Add Row</strong> for anyone missing from the file, or the ✕ on a row to drop it.</li>
+        <li>Once every row is valid, select <strong>Save to Scores</strong>. Existing records for the same student, subject, and test type are updated in place; everyone else is added as new.</li>
+      </ol>
+      <div class="code-block">
+        <button class="copy-btn" data-copy="StudentID,StudentName,Score">Copy</button>StudentID, StudentName, Score
+      </div>
+      <p>That's the expected column layout — the same shape the CSV export produces, so a file you download, correct in a spreadsheet program, and re-upload will read back in without any reformatting.</p>
+      <p>A <strong>Download CSV</strong> button on the grid lets you keep a copy of whatever's currently loaded, corrections included.</p>
+    </section>
+
+    <section class="section" id="ad-retakes">
+      <div class="section-eyebrow reveal">// 07 — Admin Guide</div>
+      <h2 class="reveal">Retake Requests</h2>
+      <p class="section-lead reveal">A student who's already submitted a subject and test type can't take it again by default — they'll see an explanation with an option to notify you instead of a second attempt.</p>
+      <p>Pending requests appear at the top of the Logs tab, badged with a count in the sidebar so you don't need to go looking for them. Each one shows who's asking and for what, with two actions:</p>
+      <ul>
+        <li><strong>Accept Retake</strong> — clears their existing result for that subject and test type, opening it back up</li>
+        <li><strong>Reject</strong> — declines the request; their original result stands</li>
+      </ul>
+    </section>
+
+    <section class="section" id="ad-logs">
+      <div class="section-eyebrow reveal">// 07 — Admin Guide</div>
+      <h2 class="reveal">Activity Logs</h2>
+      <p class="section-lead reveal">A running record of what's happened under your school — questions added, scores edited, admins created, data exported. Useful as a paper trail when more than one person has access, or when something needs explaining after the fact.</p>
+    </section>
+
+    <hr class="divider">
+
+    <section class="section" id="st-signin">
+      <div class="section-eyebrow reveal">// 08 — Student Guide</div>
+      <div class="role-banner student reveal">
+        <div class="rb-icon">🎓</div>
+        <div class="rb-text"><div class="rb-title">Student</div><div class="rb-sub">Signs in, sits the test, checks the result</div></div>
+      </div>
+      <h2 class="reveal">Signing In</h2>
+      <p class="section-lead reveal">You'll need four things from your school: an Admin ID or school code, your matric number, your password, and which subject and test type you're sitting.</p>
+      <ol>
+        <li>Enter your school's Admin ID (ask your teacher if you don't have it).</li>
+        <li>Enter your matric number and password.</li>
+        <li>Choose the subject and test type — only subjects you're enrolled in will be selectable.</li>
+        <li>Select <strong>Start Test</strong>.</li>
+      </ol>
+      <div class="callout warn reveal">
+        <div class="co-icon">🔒</div>
+        <div class="co-body"><div class="co-title">If sign-in is refused</div>Your school may have login access switched off temporarily, or you may have already submitted this test. Either way, the message on screen tells you which — contact your admin rather than retrying repeatedly.</div>
+      </div>
+    </section>
+
+    <section class="section" id="st-taking">
+      <div class="section-eyebrow reveal">// 08 — Student Guide</div>
+      <h2 class="reveal">Taking a Test</h2>
+      <ul>
+        <li>If a question has an image, tap it to view it full-screen — this works for a single image or a gallery of several.</li>
+        <li>Your answers save automatically every 30 seconds, so a lost connection or an accidental refresh mid-test doesn't cost you your progress.</li>
+        <li>If the test is timed, the countdown is visible the entire time — submit before it reaches zero.</li>
+        <li>Review your answers using the question navigator before selecting <strong>Submit</strong> — once submitted, the test is locked.</li>
+      </ul>
+    </section>
+
+    <section class="section" id="st-results">
+      <div class="section-eyebrow reveal">// 08 — Student Guide</div>
+      <h2 class="reveal">Results &amp; Retakes</h2>
+      <p class="section-lead reveal">Right after submitting, you'll see your score and a full breakdown — which questions you got right, which you missed, and the correct answer for each. Where the admin has added one, an explanation appears alongside the answer.</p>
+      <p>Leaving this screen — closing the tab, refreshing, navigating away — takes you back to sign-in rather than re-opening the test. Your result is already recorded at that point, so there's nothing to lose by leaving.</p>
+      <p>If you believe your result doesn't reflect what happened — a technical issue, a genuine second attempt needed — use the option on screen to notify your admin. They'll see your request and can reopen the test if they choose to.</p>
+    </section>
+
+    <hr class="divider">
+
+    <section class="section" id="ref-shortcuts">
+      <div class="section-eyebrow reveal">// 09 — Reference</div>
+      <h2 class="reveal">Tips &amp; Shortcuts</h2>
+      <ul>
+        <li>Every password field has an eye icon — tap it to check what you've typed before submitting a form.</li>
+        <li>The theme toggle switches between light and dark mode; your choice is remembered on that device.</li>
+        <li>Tapping outside an open menu or panel closes it — no need to hunt for a specific close button.</li>
+        <li>Refreshing the page keeps you on whichever tab you were last viewing, rather than returning you to a default screen.</li>
+      </ul>
+      <div class="tbl-wrap">
+        <table class="doc-table">
+          <thead><tr><th>Key</th><th>Action</th></tr></thead>
+          <tbody>
+            <tr><td><span class="key">/</span></td><td>Focus the documentation search</td></tr>
+            <tr><td><span class="key">Esc</span></td><td>Close an open menu, modal, or search</td></tr>
+            <tr><td><span class="key">Enter</span></td><td>Submit the focused sign-in or search field</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="section" id="ref-faq">
+      <div class="section-eyebrow reveal">// 09 — Reference</div>
+      <h2 class="reveal">FAQ</h2>
+
+      <div class="subsection">
+        <h4>Can a student take the same test twice?</h4>
+        <p>Not on their own — a second attempt requires an admin to accept a retake request first. This prevents accidental duplicate submissions from inflating or overwriting a real result.</p>
+      </div>
+      <div class="subsection">
+        <h4>What happens if I forget my password?</h4>
+        <p>Students and Admins have their password reset by whoever manages their account — an Admin can reset a student's password from the Students tab, and a Super Admin can reset an Admin's from the Admins tab. Super Admins should keep their own email and password somewhere safe, since that's the only way in.</p>
+      </div>
+      <div class="subsection">
+        <h4>Can two schools use the same subject names?</h4>
+        <p>Yes — every school's data is fully separate. Subjects, students, and scores never cross between schools, even if the names match exactly.</p>
+      </div>
+      <div class="subsection">
+        <h4>Does switching to dark mode change anything besides the color scheme?</h4>
+        <p>No — it's purely visual. All data, scores, and settings behave identically in either mode.</p>
+      </div>
+      <div class="subsection">
+        <h4>Can I change a test's total marks after questions already exist?</h4>
+        <p>The total is the sum of each question's marks, so adjust it by editing individual question marks rather than a single field — there's no single override that would leave question-level marks inconsistent with the displayed total.</p>
+      </div>
+      <div class="subsection">
+        <h4>Is there a limit to how many students or questions I can add?</h4>
+        <p>Practical limits exist per test (up to 200 questions) and per question (up to 8 options, 4 images) to keep things fast and usable — there's no hard cap on the number of students.</p>
+      </div>
+    </section>
+
+    <section class="section" id="ref-glossary">
+      <div class="section-eyebrow reveal">// 09 — Reference</div>
+      <h2 class="reveal">Glossary</h2>
+      <div class="tbl-wrap">
+        <table class="doc-table">
+          <tbody>
+            <tr><td style="width:180px"><strong>Super Admin</strong></td><td>The account that owns a school — branding, access controls, and Admin creation.</td></tr>
+            <tr><td><strong>Admin</strong></td><td>An account created by a Super Admin to manage tests day to day.</td></tr>
+            <tr><td><strong>Session</strong></td><td>A top-level academic period, such as a year, under which Terms sit.</td></tr>
+            <tr><td><strong>Term</strong></td><td>A subdivision of a Session that scopes students, questions, and scores.</td></tr>
+            <tr><td><strong>Test type</strong></td><td>One of First Test, Second Test, Third Test, or Exam — each with a fixed maximum score.</td></tr>
+            <tr><td><strong>Source badge</strong></td><td>A label on a score record showing whether it came from a live quiz, manual entry, a CSV import, or an edit.</td></tr>
+            <tr><td><strong>Retake request</strong></td><td>A student's ask to reattempt a test they've already submitted, pending admin approval.</td></tr>
+            <tr><td><strong>Matric number</strong></td><td>A student's individual identifier, used alongside their school's Admin ID to sign in.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <hr class="divider">
+
+    <section class="section" id="about-codeverse">
+      <div class="section-eyebrow reveal">// 10 — Company</div>
+      <h2 class="reveal">CodeVerse Technologies</h2>
+      <p class="section-lead reveal">Who's behind SkuulQuiz PRO, and what else is in the same family.</p>
+
+      <div class="cv-panel reveal">
+        <div class="cv-tagline">"We build, you evolve."</div>
+        <p>SkuulQuiz PRO is built by <strong>Skuul</strong>, the education-focused product line of <strong>CodeVerse Technologies</strong>. CodeVerse builds the software; the tools are built to grow with the organizations that run on them.</p>
+        <div class="cv-tree">
+          <span class="node parent">CodeVerse Technologies</span>
+          <span class="arrow">→</span>
+          <span class="node parent">Skuul</span>
+          <span class="arrow">→</span>
+          <span class="node current">SkuulQuiz PRO</span>
+        </div>
+      </div>
+
+      <h3>Explore the Skuul Suite</h3>
+      <p>SkuulQuiz PRO handles examinations. The rest of the suite covers everything else a school runs on.</p>
+
+      <div class="suite-grid reveal">
+        <div class="suite-card current">
+          <div class="sc-icon">📝</div>
+          <div><div class="sc-name">SkuulQuiz PRO</div><div class="sc-cta">You are here</div></div>
+        </div>
+        <a class="suite-card" href="./skuul-rms-documentation.html">
+          <div class="sc-icon">🗃️</div>
+          <div><div class="sc-name">Skuul-RMS</div><div class="sc-cta">View docs →</div></div>
+        </a>
+        <a class="suite-card" href="./skuulpay-documentation.html">
+          <div class="sc-icon">💳</div>
+          <div><div class="sc-name">SkuulPay</div><div class="sc-cta">View docs →</div></div>
+        </a>
+        <a class="suite-card" href="./e-skuuled-documentation.html">
+          <div class="sc-icon">🎓</div>
+          <div><div class="sc-name">E-Skuuled</div><div class="sc-cta">View docs →</div></div>
+        </a>
+        <a class="suite-card" href="./skuul-libs-documentation.html">
+          <div class="sc-icon">📚</div>
+          <div><div class="sc-name">Skuul-Libs</div><div class="sc-cta">View docs →</div></div>
+        </a>
+        <a class="suite-card" href="./skuul-clinic-documentation.html">
+          <div class="sc-icon">🩺</div>
+          <div><div class="sc-name">Skuul-Clinic</div><div class="sc-cta">View docs →</div></div>
+        </a>
+        <a class="suite-card" href="./skuul-calx-documentation.html">
+          <div class="sc-icon">🧮</div>
+          <div><div class="sc-name">Skuul-Calx</div><div class="sc-cta">View docs →</div></div>
+        </a>
+      </div>
+    </section>
+
+    <footer class="doc-footer">
+      <p>SkuulQuiz PRO Documentation — built for the people who run exams, not just take them.<br>A Skuul product, by CodeVerse Technologies.</p>
+    </footer>
+  </main>
+</div>
+
+<button class="back-top" id="backTop" aria-label="Back to top">
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="19" x2="12" y2="5"></line><polyline points="5 12 12 5 19 12"></polyline></svg>
+</button>
+
+<script>
+(function(){
+  'use strict';
+
+  /* ── Mobile sidebar ─────────────────────────────────────────── */
+  const sidebar   = document.getElementById('sidebar');
+  const backdrop  = document.getElementById('sbBackdrop');
+  const menuBtn   = document.getElementById('menuBtn');
+  const closeBtn  = document.getElementById('sbCloseBtn');
+
+  /* Opening the mobile menu hides the article and shows the nav list as
+     normal page content — scrolling it is then just the page's own native
+     scroll, so we save/restore where the user was reading before the swap. */
+  let savedScrollY = 0;
+  function openSidebar(){
+    savedScrollY = window.scrollY || window.pageYOffset || 0;
+    document.body.classList.add('nav-open');
+    sidebar.classList.add('open');
+    window.scrollTo({ top:0, left:0, behavior:'instant' });
+  }
+  function closeSidebar(){
+    document.body.classList.remove('nav-open');
+    sidebar.classList.remove('open');
+    window.scrollTo({ top:savedScrollY, left:0, behavior:'instant' });
+  }
+
+  menuBtn.addEventListener('click', openSidebar);
+  closeBtn.addEventListener('click', closeSidebar);
+  backdrop.addEventListener('click', closeSidebar);
+
+  /* ── Sidebar links: close first (restores .main), then scroll to target ── */
+  const links = Array.from(document.querySelectorAll('.sb-link'));
+  links.forEach(link => {
+    link.addEventListener('click', () => {
+      const targetId = link.dataset.target;
+      const isMobile = window.innerWidth <= 900;
+      if (isMobile) closeSidebar(); // must happen first — .main is display:none until this runs
+      const el = document.getElementById(targetId);
+      if (el) el.scrollIntoView({ behavior:'smooth', block:'start' });
+    });
+  });
+
+  /* ── Active-link tracking via IntersectionObserver ─────────────── */
+  const sections = links
+    .map(l => document.getElementById(l.dataset.target))
+    .filter(Boolean);
+
+  const activeObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      const link = links.find(l => l.dataset.target === entry.target.id);
+      if (!link) return;
+      if (entry.isIntersecting) {
+        links.forEach(l => l.classList.remove('active'));
+        link.classList.add('active');
+      }
+    });
+  }, { rootMargin: '-15% 0px -75% 0px', threshold: 0 });
+
+  sections.forEach(s => activeObserver.observe(s));
+
+  /* ── Scroll-reveal ──────────────────────────────────────────────── */
+  const revealEls = document.querySelectorAll('.reveal');
+  const revealObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('in');
+        revealObserver.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+  revealEls.forEach(el => revealObserver.observe(el));
+
+  /* ── Search / filter ────────────────────────────────────────────── */
+  function applyFilter(query){
+    const q = query.trim().toLowerCase();
+    links.forEach(link => {
+      const text = link.textContent.toLowerCase();
+      link.classList.toggle('hidden-by-search', q.length > 0 && !text.includes(q));
+    });
+    document.querySelectorAll('.sb-group').forEach(group => {
+      const visible = Array.from(group.querySelectorAll('.sb-link')).some(l => !l.classList.contains('hidden-by-search'));
+      group.style.display = visible ? '' : 'none';
+    });
+  }
+
+  const searchInput       = document.getElementById('searchInput');
+  const searchInputMobile = document.getElementById('searchInputMobile');
+
+  [searchInput, searchInputMobile].forEach(input => {
+    if (!input) return;
+    input.addEventListener('input', () => {
+      applyFilter(input.value);
+      if (searchInput && input !== searchInput) searchInput.value = input.value;
+      if (searchInputMobile && input !== searchInputMobile) searchInputMobile.value = input.value;
+    });
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        const firstMatch = links.find(l => !l.classList.contains('hidden-by-search'));
+        if (firstMatch) firstMatch.click();
+        input.blur();
+      }
+      if (e.key === 'Escape') { input.value=''; applyFilter(''); input.blur(); }
+    });
+  });
+
+  /* Keyboard shortcut: "/" focuses search, unless already typing somewhere */
+  document.addEventListener('keydown', (e) => {
+    const tag = (document.activeElement && document.activeElement.tagName) || '';
+    const typing = tag === 'INPUT' || tag === 'TEXTAREA';
+    if (e.key === '/' && !typing) {
+      e.preventDefault();
+      const target = window.innerWidth <= 900 ? searchInputMobile : searchInput;
+      if (window.innerWidth <= 900) openSidebar();
+      if (target) target.focus();
+    }
+    if (e.key === 'Escape') closeSidebar();
+  });
+
+  /* ── Back to top ───────────────────────────────────────────────── */
+  const backTop = document.getElementById('backTop');
+  window.addEventListener('scroll', () => {
+    backTop.classList.toggle('show', window.scrollY > 700);
+  }, { passive:true });
+  backTop.addEventListener('click', () => window.scrollTo({ top:0, behavior:'smooth' }));
+
+  /* ── Hero stat count-up (runs once on load) ───────────────────── */
+  document.querySelectorAll('.hero-stat-val').forEach(el => {
+    const target = parseInt(el.dataset.count, 10) || 0;
+    const duration = 900;
+    const start = performance.now();
+    function tick(now){
+      const p = Math.min(1, (now - start) / duration);
+      const eased = 1 - Math.pow(1 - p, 3);
+      el.textContent = Math.round(eased * target);
+      if (p < 1) requestAnimationFrame(tick);
+    }
+    requestAnimationFrame(tick);
+  });
+
+  /* ── Copy buttons on code blocks ──────────────────────────────── */
+  document.querySelectorAll('.copy-btn').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const text = btn.dataset.copy || '';
+      try {
+        await navigator.clipboard.writeText(text);
+        const original = btn.textContent;
+        btn.textContent = 'Copied';
+        setTimeout(() => { btn.textContent = original; }, 1400);
+      } catch(e) { /* clipboard unavailable — silently ignore */ }
+    });
+  });
+
+})();
+</script>
+
+</body>
+</html>
