@@ -1,0 +1,801 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Skuul-CalcX — Documentation</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700;800&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ══════════════════════════════════════════════════
+   TOKENS
+══════════════════════════════════════════════════ */
+:root{
+  --bg:#0A0A0F;--panel:#12121A;--panel-2:#181822;--panel-3:#1E1E2C;
+  --border:rgba(255,255,255,.08);--border-2:rgba(255,255,255,.14);
+  --text:#EEF0FC;--dim:#8888A8;--dim-2:#54546E;
+
+  --std:#00E5CC;--std-dim:rgba(0,229,204,.14);
+  --sci:#5B9BD5;--sci-dim:rgba(91,155,213,.14);
+  --prog:#9B7FE5;--prog-dim:rgba(155,127,229,.14);
+  --calc:#FFB347;--calc-dim:rgba(255,179,71,.14);
+  --frac:#5EE89E;--frac-dim:rgba(94,232,158,.14);
+  --mat:#E56BC7;--mat-dim:rgba(229,107,199,.14);
+
+  --ok:#5EE89E;--err:#FF6B6B;
+
+  --mono:'JetBrains Mono',monospace;
+  --sans:'IBM Plex Sans',sans-serif;
+  --r:10px;--r-sm:6px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  background:var(--bg);color:var(--text);font-family:var(--sans);
+  line-height:1.65;-webkit-font-smoothing:antialiased;
+  background-image:
+    radial-gradient(circle at 15% 8%, rgba(0,229,204,.05), transparent 32%),
+    radial-gradient(circle at 88% 18%, rgba(155,127,229,.05), transparent 32%);
+  background-attachment:fixed;
+}
+::selection{background:rgba(0,229,204,.25);color:#fff}
+a{color:inherit}
+button{font-family:inherit}
+
+/* ══════════════════════════════════════════════════
+   TOP BAR
+══════════════════════════════════════════════════ */
+.topbar{
+  position:sticky;top:0;z-index:50;display:flex;align-items:center;justify-content:space-between;
+  padding:14px 28px;background:rgba(10,10,15,.86);backdrop-filter:blur(14px);
+  border-bottom:1px solid var(--border);
+}
+.topbar-brand{display:flex;align-items:center;gap:10px}
+.topbar-name{font:800 15px/1 var(--mono);letter-spacing:.02em}
+.topbar-name span{color:var(--std)}
+.topbar-tag{font:600 10px/1 var(--mono);letter-spacing:.14em;color:var(--dim);
+  border-left:1px solid var(--border);padding-left:10px;text-transform:uppercase}
+.topbar-right{display:flex;align-items:center;gap:18px}
+.status-pill{display:flex;align-items:center;gap:7px;font:600 11px/1 var(--mono);color:var(--dim)}
+.status-dot{width:7px;height:7px;border-radius:50%;background:var(--ok);box-shadow:0 0 0 0 rgba(94,232,158,.6);
+  animation:pulse 2.4s ease-out infinite}
+@keyframes pulse{
+  0%{box-shadow:0 0 0 0 rgba(94,232,158,.55)}
+  70%{box-shadow:0 0 0 7px rgba(94,232,158,0)}
+  100%{box-shadow:0 0 0 0 rgba(94,232,158,0)}
+}
+.topbar-version{font:500 11px/1 var(--mono);color:var(--dim-2)}
+@media(max-width:640px){.topbar-tag,.topbar-version{display:none}}
+
+/* ══════════════════════════════════════════════════
+   HERO
+══════════════════════════════════════════════════ */
+.hero{max-width:920px;margin:0 auto;padding:76px 28px 48px;text-align:center}
+.hero-eyebrow{font:700 11px/1 var(--mono);letter-spacing:.22em;color:var(--std);text-transform:uppercase;margin-bottom:18px}
+.hero h1{
+  font:800 clamp(32px,5.4vw,56px)/1.08 var(--mono);letter-spacing:-.01em;
+  background:linear-gradient(180deg,#fff, #C9CCE8 120%);-webkit-background-clip:text;background-clip:text;color:transparent;
+}
+.hero p.lede{
+  font:400 17px/1.7 var(--sans);color:var(--dim);max-width:620px;margin:22px auto 0;
+}
+.hero p.lede b{color:var(--text);font-weight:600}
+
+/* Signature: recreated live display, cycling through each mode */
+.hero-display-wrap{margin:52px auto 0;max-width:480px}
+.hero-display{
+  background:#050508;border:1px solid var(--border-2);border-radius:var(--r);
+  padding:26px 28px 22px;position:relative;overflow:hidden;
+  box-shadow:0 0 0 1px rgba(255,255,255,.02), 0 24px 60px -20px rgba(0,229,204,.15);
+}
+.hero-display::before{
+  content:'';position:absolute;inset:0;pointer-events:none;
+  background:repeating-linear-gradient(0deg,rgba(255,255,255,.012) 0px,rgba(255,255,255,.012) 1px,transparent 1px,transparent 3px);
+}
+.hd-mode-tag{
+  font:700 9px/1 var(--mono);letter-spacing:.14em;text-transform:uppercase;
+  padding:3px 8px;border-radius:4px;display:inline-block;margin-bottom:14px;
+  transition:color .5s,background .5s,border-color .5s;border:1px solid transparent;
+}
+.hd-expr{font:400 13px/1 var(--mono);color:var(--dim);text-align:right;min-height:16px;transition:color .4s}
+.hd-result{font:700 32px/1.25 var(--mono);text-align:right;min-height:40px;transition:color .4s}
+.hero-dots{display:flex;justify-content:center;gap:6px;margin-top:16px}
+.hero-dot{width:5px;height:5px;border-radius:50%;background:var(--dim-2);transition:background .3s,transform .3s}
+.hero-dot.on{background:var(--std);transform:scale(1.5)}
+
+/* Mode quick-jump badges */
+.mode-jump{display:flex;flex-wrap:wrap;justify-content:center;gap:9px;margin:40px auto 0;max-width:640px}
+.mode-jump button{
+  font:700 11px/1 var(--mono);letter-spacing:.05em;padding:9px 16px;border-radius:99px;
+  background:var(--panel);border:1px solid var(--border);color:var(--dim);cursor:pointer;
+  transition:all .18s;
+}
+.mode-jump button:hover{border-color:var(--border-2);color:var(--text);transform:translateY(-1px)}
+
+/* ══════════════════════════════════════════════════
+   TAB BAR — mirrors the calculator's own tab chrome
+══════════════════════════════════════════════════ */
+.tabbar-outer{position:sticky;top:53px;z-index:40;background:rgba(10,10,15,.92);backdrop-filter:blur(14px);
+  border-bottom:1px solid var(--border);}
+.tabbar{
+  max-width:1080px;margin:0 auto;display:flex;overflow-x:auto;scrollbar-width:none;
+}
+.tabbar::-webkit-scrollbar{display:none}
+.tabbar button{
+  flex-shrink:0;padding:15px 20px 13px;font:700 11px/1 var(--mono);letter-spacing:.08em;
+  color:var(--dim);background:none;border:none;border-bottom:2px solid transparent;cursor:pointer;
+  white-space:nowrap;transition:color .15s;position:relative;
+}
+.tabbar button:hover{color:var(--text)}
+.tabbar button.on{color:var(--tab-c,var(--std));border-bottom-color:var(--tab-c,var(--std))}
+
+/* ══════════════════════════════════════════════════
+   CONTENT
+══════════════════════════════════════════════════ */
+.content{max-width:1080px;margin:0 auto;padding:48px 28px 100px}
+.tab-panel{display:none;animation:fadeIn .35s ease}
+.tab-panel.on{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+.panel-head{display:flex;align-items:center;gap:14px;margin-bottom:8px}
+.panel-badge{
+  width:38px;height:38px;border-radius:9px;display:flex;align-items:center;justify-content:center;
+  font:800 14px/1 var(--mono);flex-shrink:0;
+  background:var(--badge-bg);color:var(--badge-c);border:1px solid var(--badge-bd);
+}
+.panel-head h2{font:700 26px/1.2 var(--mono);letter-spacing:-.01em}
+.panel-sub{color:var(--dim);font-size:15.5px;max-width:660px;margin:16px 0 36px;line-height:1.7}
+.panel-sub b{color:var(--text);font-weight:600}
+.panel-sub code{color:var(--accent,var(--std))}
+
+h3.section-h{font:700 13px/1 var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--dim);
+  margin:44px 0 18px;padding-top:28px;border-top:1px solid var(--border)}
+h3.section-h:first-of-type{border-top:none;padding-top:0;margin-top:0}
+
+p.prose{color:#C6C8E2;font-size:15px;line-height:1.75;margin-bottom:14px;max-width:700px}
+p.prose:last-child{margin-bottom:0}
+p.prose code{background:var(--panel-2);border:1px solid var(--border);border-radius:4px;padding:1px 6px;
+  font:500 13px var(--mono);color:var(--accent,var(--std))}
+p.prose b{color:var(--text);font-weight:600}
+
+ul.prose-list{margin:0 0 14px 0;padding-left:0;list-style:none;max-width:700px}
+ul.prose-list li{color:#C6C8E2;font-size:15px;line-height:1.7;padding-left:20px;position:relative;margin-bottom:9px}
+ul.prose-list li::before{content:'—';position:absolute;left:0;color:var(--accent,var(--std));font-weight:700}
+ul.prose-list b{color:var(--text)}
+ul.prose-list code{background:var(--panel-2);border:1px solid var(--border);border-radius:4px;padding:1px 6px;
+  font:500 13px var(--mono);color:var(--accent,var(--std))}
+
+/* Callout boxes */
+.callout{
+  display:flex;gap:12px;padding:16px 18px;border-radius:var(--r-sm);margin:20px 0;max-width:700px;
+  background:var(--panel-2);border:1px solid var(--border);border-left:3px solid var(--accent,var(--std));
+}
+.callout-icon{font:700 12px/1 var(--mono);color:var(--accent,var(--std));flex-shrink:0;margin-top:1px}
+.callout p{color:#C6C8E2;font-size:14px;line-height:1.65}
+.callout p b{color:var(--text)}
+.callout p code{background:var(--panel-3);border:1px solid var(--border);border-radius:4px;padding:1px 5px;
+  font:500 12.5px var(--mono);color:var(--accent,var(--std))}
+
+/* Reference tables (button/operation cheat sheets) */
+.ref-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:10px;margin:20px 0 30px}
+.ref-item{
+  background:var(--panel);border:1px solid var(--border);border-radius:var(--r-sm);padding:13px 14px;
+  transition:border-color .15s;
+}
+.ref-item:hover{border-color:var(--border-2)}
+.ref-key{
+  display:inline-flex;align-items:center;justify-content:center;min-width:34px;height:26px;padding:0 8px;
+  background:var(--panel-3);border:1px solid var(--border-2);border-radius:5px;
+  font:700 13px/1 var(--mono);color:var(--accent,var(--std));margin-bottom:8px;
+}
+.ref-desc{font-size:12.5px;color:var(--dim);line-height:1.5}
+
+/* Example / REPL blocks */
+.example{
+  background:#06060A;border:1px solid var(--border);border-radius:var(--r-sm);
+  padding:14px 16px;margin:10px 0;max-width:560px;font-family:var(--mono);font-size:13.5px;
+}
+.example-row{display:flex;align-items:center;gap:10px;padding:3px 0}
+.example-in{color:var(--dim)}
+.example-arrow{color:var(--dim-2)}
+.example-out{color:var(--accent,var(--std));font-weight:700}
+.example-note{color:var(--dim);font-size:11.5px;margin-top:6px;font-family:var(--sans);font-style:italic}
+
+/* Illustrative mini UI mockups */
+.mockup{background:#06060A;border:1px solid var(--border-2);border-radius:var(--r-sm);padding:16px;margin:20px 0;max-width:420px}
+.mockup-label{font:700 9px/1 var(--mono);letter-spacing:.12em;color:var(--dim);text-transform:uppercase;margin-bottom:12px}
+
+/* Programmer mode base readout mockup */
+.base-mock-row{display:flex;justify-content:space-between;align-items:center;padding:6px 4px;border-radius:4px}
+.base-mock-row.hi{background:var(--prog-dim)}
+.base-mock-lbl{font:700 10px var(--mono);color:var(--dim);width:34px}
+.base-mock-row.hi .base-mock-lbl{color:var(--prog)}
+.base-mock-val{font:600 13px var(--mono);color:var(--text)}
+
+/* Fractions mode bar mockup */
+.frac-mock{display:flex;align-items:center;justify-content:center;gap:18px;padding:10px 0}
+.frac-mock-num{display:flex;flex-direction:column;align-items:center;gap:4px}
+.frac-mock-num span{font:700 20px var(--mono);color:var(--text)}
+.frac-mock-bar{width:34px;height:2px;background:var(--frac)}
+.frac-mock-op{font:700 22px var(--mono);color:var(--frac)}
+
+/* Matrix mode bracket mockup */
+.mat-mock{display:flex;align-items:stretch;justify-content:center;gap:0;padding:8px 0}
+.mat-mock-bl,.mat-mock-br{width:6px;border-top:2px solid var(--mat);border-bottom:2px solid var(--mat)}
+.mat-mock-bl{border-left:2px solid var(--mat);border-radius:3px 0 0 3px}
+.mat-mock-br{border-right:2px solid var(--mat);border-radius:0 3px 3px 0}
+.mat-mock-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:6px;padding:8px 10px}
+.mat-mock-cell{width:34px;height:30px;background:var(--panel-3);border:1px solid var(--border);border-radius:4px;
+  display:flex;align-items:center;justify-content:center;font:600 13px var(--mono);color:var(--text)}
+
+/* Keyboard shortcut table */
+.kbd-table{width:100%;max-width:700px;border-collapse:collapse;margin:16px 0}
+.kbd-table th{text-align:left;font:700 10px/1 var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--dim);
+  padding:0 0 12px;border-bottom:1px solid var(--border)}
+.kbd-table td{padding:13px 0;border-bottom:1px solid var(--border);font-size:14px;color:#C6C8E2;vertical-align:top}
+.kbd-table td:first-child{width:45%}
+kbd{
+  display:inline-flex;align-items:center;justify-content:center;min-width:24px;height:24px;padding:0 7px;
+  background:var(--panel-3);border:1px solid var(--border-2);border-bottom-width:2px;border-radius:5px;
+  font:600 12px var(--mono);color:var(--text);margin:1px 2px 1px 0;
+}
+
+/* FAQ accordion */
+.faq-item{border-bottom:1px solid var(--border)}
+.faq-item:first-child{border-top:1px solid var(--border)}
+.faq-q{
+  display:flex;align-items:center;justify-content:space-between;width:100%;text-align:left;
+  padding:19px 4px;background:none;border:none;color:var(--text);cursor:pointer;font-size:15.5px;font-weight:600;
+}
+.faq-q:hover{color:var(--std)}
+.faq-icon{font:400 20px/1 var(--mono);color:var(--dim);transition:transform .25s;flex-shrink:0;margin-left:16px}
+.faq-item.open .faq-icon{transform:rotate(45deg);color:var(--std)}
+.faq-a{max-height:0;overflow:hidden;transition:max-height .3s ease}
+.faq-item.open .faq-a{max-height:400px}
+.faq-a p{color:var(--dim);font-size:14.5px;line-height:1.7;padding:0 4px 20px;max-width:680px}
+.faq-a p code{background:var(--panel-2);border:1px solid var(--border);border-radius:4px;padding:1px 6px;
+  font:500 13px var(--mono);color:var(--std)}
+
+/* Overview grid (getting started tab) */
+.overview-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px;margin:20px 0 10px}
+.ov-card{background:var(--panel);border:1px solid var(--border);border-radius:var(--r);padding:20px 20px 18px;
+  transition:border-color .2s,transform .2s}
+.ov-card:hover{border-color:var(--border-2);transform:translateY(-2px)}
+.ov-card-top{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.ov-card-badge{width:26px;height:26px;border-radius:6px;display:flex;align-items:center;justify-content:center;
+  font:800 11px var(--mono);flex-shrink:0}
+.ov-card h4{font:700 14px var(--mono);letter-spacing:.02em}
+.ov-card p{font-size:13px;color:var(--dim);line-height:1.6}
+
+/* Footer */
+footer{border-top:1px solid var(--border);padding:40px 28px;text-align:center}
+footer p{font-size:12px;color:var(--dim-2);font-family:var(--mono)}
+footer p b{color:var(--dim)}
+footer .foot-links{margin-top:10px;display:flex;justify-content:center;gap:18px;font-size:11px}
+
+@media(max-width:640px){
+  .hero{padding:56px 20px 36px}
+  .content{padding:36px 18px 80px}
+  .panel-head h2{font-size:21px}
+}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-brand">
+    <span class="topbar-name">SKUUL<span>-CALCX</span></span>
+    <span class="topbar-tag">Documentation</span>
+  </div>
+  <div class="topbar-right">
+    <span class="status-pill"><span class="status-dot"></span>All systems operational</span>
+    <span class="topbar-version">v2.4</span>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="hero-eyebrow">Reference &amp; user guide</div>
+  <h1>Six calculators.<br>One instrument panel.</h1>
+  <p class="lede">Skuul-CalcX brings <b>standard arithmetic</b>, <b>scientific functions</b>, <b>programmer bitwise logic</b>, <b>calculus</b>, <b>exact fraction arithmetic</b>, and full <b>matrix operations</b> into a single tool — built so that entering a calculation is never the hard part.</p>
+
+  <div class="hero-display-wrap">
+    <div class="hero-display">
+      <span class="hd-mode-tag" id="hdTag">STANDARD</span>
+      <div class="hd-expr" id="hdExpr">12 × 4</div>
+      <div class="hd-result" id="hdResult">48</div>
+    </div>
+    <div class="hero-dots" id="hdDots"></div>
+  </div>
+
+  <div class="mode-jump">
+    <button data-jump="standard">Standard</button>
+    <button data-jump="scientific">Scientific</button>
+    <button data-jump="programmer">Programmer</button>
+    <button data-jump="calculus">Calculus</button>
+    <button data-jump="fractions">Fractions</button>
+    <button data-jump="matrix">Matrix</button>
+  </div>
+</section>
+
+<div class="tabbar-outer">
+  <nav class="tabbar" id="tabbar">
+    <button class="on" data-tab="overview" style="--tab-c:#EEF0FC">OVERVIEW</button>
+    <button data-tab="standard" style="--tab-c:var(--std)">STANDARD</button>
+    <button data-tab="scientific" style="--tab-c:var(--sci)">SCIENTIFIC</button>
+    <button data-tab="programmer" style="--tab-c:var(--prog)">PROGRAMMER</button>
+    <button data-tab="calculus" style="--tab-c:var(--calc)">CALCULUS</button>
+    <button data-tab="fractions" style="--tab-c:var(--frac)">FRACTIONS</button>
+    <button data-tab="matrix" style="--tab-c:var(--mat)">MATRIX</button>
+    <button data-tab="shortcuts" style="--tab-c:#EEF0FC">SHORTCUTS</button>
+    <button data-tab="faq" style="--tab-c:#EEF0FC">FAQ</button>
+  </nav>
+</div>
+
+<main class="content">
+
+  <!-- ═══════════════ OVERVIEW ═══════════════ -->
+  <section class="tab-panel on" id="tab-overview">
+    <div class="panel-head">
+      <div class="panel-badge" style="--badge-bg:var(--panel-3);--badge-c:#EEF0FC;--badge-bd:var(--border-2)">◈</div>
+      <h2>Getting started</h2>
+    </div>
+    <p class="panel-sub">Every mode in Skuul-CalcX shares the same underlying instrument: one display, one history log, and an input system designed around a simple idea — <b>a wrong keystroke should be hard to make, not just easy to fix.</b> This page walks through what's shared across every mode, then covers each one in full.</p>
+
+    <h3 class="section-h">The six modes at a glance</h3>
+    <div class="overview-grid">
+      <div class="ov-card">
+        <div class="ov-card-top"><div class="ov-card-badge" style="background:var(--std-dim);color:var(--std)">01</div><h4>Standard</h4></div>
+        <p>Everyday arithmetic — the four operators, powers, roots, factorials, and percentages, with a live-updating preview as you type.</p>
+      </div>
+      <div class="ov-card">
+        <div class="ov-card-top"><div class="ov-card-badge" style="background:var(--sci-dim);color:var(--sci)">02</div><h4>Scientific</h4></div>
+        <p>Trigonometry, logarithms, and constants, with a degree/radian switch that updates your answer instantly.</p>
+      </div>
+      <div class="ov-card">
+        <div class="ov-card-top"><div class="ov-card-badge" style="background:var(--prog-dim);color:var(--prog)">03</div><h4>Programmer</h4></div>
+        <p>Hex, decimal, octal, and binary, converted live, with a full set of bitwise operators.</p>
+      </div>
+      <div class="ov-card">
+        <div class="ov-card-top"><div class="ov-card-badge" style="background:var(--calc-dim);color:var(--calc)">04</div><h4>Calculus</h4></div>
+        <p>Derivatives, integrals — including improper ones stretching to infinity — limits, roots, and point evaluation.</p>
+      </div>
+      <div class="ov-card">
+        <div class="ov-card-top"><div class="ov-card-badge" style="background:var(--frac-dim);color:var(--frac)">05</div><h4>Fractions</h4></div>
+        <p>Chain any number of fractions together and get an exact answer back — never a rounded decimal standing in for one.</p>
+      </div>
+      <div class="ov-card">
+        <div class="ov-card-top"><div class="ov-card-badge" style="background:var(--mat-dim);color:var(--mat)">06</div><h4>Matrix</h4></div>
+        <p>Addition through inversion, for any size up to 4×4, with results kept as exact fractions rather than rounded off.</p>
+      </div>
+    </div>
+
+    <h3 class="section-h">The display</h3>
+    <ul class="prose-list">
+      <li><b>Live preview.</b> As you build an expression, a small preview line shows what it currently evaluates to, updating with every keystroke — you see your answer taking shape before you ever press equals.</li>
+      <li><b>Cursor navigation.</b> In Standard, Scientific, and Programmer modes, tap anywhere inside a long expression to place your cursor there and edit that spot directly, instead of clearing and retyping the whole thing.</li>
+      <li><b>Copy.</b> Hover or tap the result and a <code>COPY</code> button appears, sending the current answer straight to your clipboard.</li>
+    </ul>
+
+    <h3 class="section-h">History</h3>
+    <p class="prose">Every calculation you complete, in any mode, is logged to the history panel — your most recent 30, newest first, each stamped with the time and which mode produced it. Tap any entry to bring its result straight back into the display. History is saved automatically and is still there the next time you open Skuul-CalcX on the same device.</p>
+
+    <h3 class="section-h">Why some modes don't take direct typing</h3>
+    <p class="prose">Calculus, Fractions, and Matrix mode all build their input through on-screen buttons rather than a free-typing keyboard. That's deliberate: a fraction typed as plain text is genuinely ambiguous (does <code>1/2+1/3</code> mean what you think it means, or did operator precedence just quietly change your answer?), and a misplaced parenthesis in a calculus expression fails in ways that are hard to spot. Building input from buttons that only ever produce valid syntax removes that entire category of mistake before it can happen. Each of those sections below explains exactly how their guided input works.</p>
+  </section>
+
+  <!-- ═══════════════ STANDARD ═══════════════ -->
+  <section class="tab-panel" id="tab-standard">
+    <div class="panel-head">
+      <div class="panel-badge" style="--badge-bg:var(--std-dim);--badge-c:var(--std);--badge-bd:rgba(0,229,204,.3)">01</div>
+      <h2 style="color:var(--std)">Standard</h2>
+    </div>
+    <p class="panel-sub" style="--accent:var(--std)">The everyday mode — the four basic operators plus the handful of extras that come up constantly: powers, roots, factorials, and remainders. Full physical keyboard support is enabled here, alongside the on-screen keypad.</p>
+
+    <h3 class="section-h">Reference</h3>
+    <div class="ref-grid">
+      <div class="ref-item"><div class="ref-key" style="--accent:var(--std)">+ − × ÷</div><div class="ref-desc">The four basic operators.</div></div>
+      <div class="ref-item"><div class="ref-key" style="--accent:var(--std)">x²</div><div class="ref-desc">Squares the current value in one tap.</div></div>
+      <div class="ref-item"><div class="ref-key" style="--accent:var(--std)">xⁿ</div><div class="ref-desc">Raises to any power — type the exponent afterward, including negative or multi-digit ones.</div></div>
+      <div class="ref-item"><div class="ref-key" style="--accent:var(--std)">√</div><div class="ref-desc">Square root.</div></div>
+      <div class="ref-item"><div class="ref-key" style="--accent:var(--std)">n!</div><div class="ref-desc">Factorial.</div></div>
+      <div class="ref-item"><div class="ref-key" style="--accent:var(--std)">% / mod</div><div class="ref-desc">Two familiar labels for the same operation — remainder after division.</div></div>
+      <div class="ref-item"><div class="ref-key" style="--accent:var(--std)">C / ⌫</div><div class="ref-desc">Clear everything, or remove the last character only.</div></div>
+      <div class="ref-item"><div class="ref-key" style="--accent:var(--std)">( )</div><div class="ref-desc">Group parts of an expression to control order of operations.</div></div>
+    </div>
+
+    <h3 class="section-h">Examples</h3>
+    <div class="example">
+      <div class="example-row"><span class="example-in">12 × 4</span><span class="example-arrow">→</span><span class="example-out" style="--accent:var(--std)">48</span></div>
+      <div class="example-row"><span class="example-in">2^10</span><span class="example-arrow">→</span><span class="example-out" style="--accent:var(--std)">1024</span></div>
+      <div class="example-row"><span class="example-in">7!</span><span class="example-arrow">→</span><span class="example-out" style="--accent:var(--std)">5040</span></div>
+      <div class="example-row"><span class="example-in">√(144)</span><span class="example-arrow">→</span><span class="example-out" style="--accent:var(--std)">12</span></div>
+      <div class="example-row"><span class="example-in">17 mod 5</span><span class="example-arrow">→</span><span class="example-out" style="--accent:var(--std)">2</span></div>
+    </div>
+
+    <div class="callout" style="--accent:var(--std)">
+      <span class="callout-icon">i</span>
+      <p><b>Implicit multiplication is understood.</b> Writing <code>2(3+4)</code> or <code>2√(9)</code> works exactly as written — you don't need to insert a <code>×</code> between a number and an opening parenthesis or function.</p>
+    </div>
+  </section>
+
+  <!-- ═══════════════ SCIENTIFIC ═══════════════ -->
+  <section class="tab-panel" id="tab-scientific">
+    <div class="panel-head">
+      <div class="panel-badge" style="--badge-bg:var(--sci-dim);--badge-c:var(--sci);--badge-bd:rgba(91,155,213,.3)">02</div>
+      <h2 style="color:var(--sci)">Scientific</h2>
+    </div>
+    <p class="panel-sub" style="--accent:var(--sci)">Everything in Standard, plus trigonometry, logarithms, and the constants that come with them. Like Standard mode, this accepts direct keyboard input as well as the on-screen keypad.</p>
+
+    <h3 class="section-h">Degrees or radians</h3>
+    <p class="prose">The <code>DEG</code> / <code>RAD</code> button in the top-left of the keypad controls how every trig function reads its argument. It's a live switch — flip it and the preview line updates immediately, before you press equals, so you can see the effect right away.</p>
+    <div class="example">
+      <div class="example-row"><span class="example-in">sin(30) &nbsp;<span style="color:var(--dim);font-size:11px">in DEG</span></span><span class="example-arrow">→</span><span class="example-out" style="--accent:var(--sci)">0.5</span></div>
+      <div class="example-row"><span class="example-in">sin(π/6) <span style="color:var(--dim);font-size:11px">in RAD</span></span><span class="example-arrow">→</span><span class="example-out" style="--accent:var(--sci)">0.5</span></div>
+    </div>
+
+    <h3 class="section-h">Reference</h3>
+    <div class="ref-grid">
+      <div class="ref-item"><div class="ref-key" style="--accent:var(--sci)">sin cos tan</div><div class="ref-desc">Standard trig functions.</div></div>
+      <div class="ref-item"><div class="ref-key" style="--accent:var(--sci)">asin acos atan</div><div class="ref-desc">Their inverses.</div></div>
+      <div class="ref-item"><div class="ref-key" style="--accent:var(--sci)">π · φ · e</div><div class="ref-desc">Pi, the golden ratio, and Euler's number.</div></div>
+      <div class="ref-item"><div class="ref-key" style="--accent:var(--sci)">ln</div><div class="ref-desc">Natural logarithm.</div></div>
+      <div class="ref-item"><div class="ref-key" style="--accent:var(--sci)">log₂ · log₁₀</div><div class="ref-desc">Base-2 and base-10 logarithms, kept as separate buttons so there's no guessing.</div></div>
+      <div class="ref-item"><div class="ref-key" style="--accent:var(--sci)">exp</div><div class="ref-desc">e raised to a power.</div></div>
+      <div class="ref-item"><div class="ref-key" style="--accent:var(--sci)">cbrt</div><div class="ref-desc">Cube root.</div></div>
+      <div class="ref-item"><div class="ref-key" style="--accent:var(--sci)">abs · sign</div><div class="ref-desc">Absolute value, and the sign of a number (−1, 0, or 1).</div></div>
+      <div class="ref-item"><div class="ref-key" style="--accent:var(--sci)">ceil · floor · round</div><div class="ref-desc">Round up, round down, or round to the nearest integer.</div></div>
+      <div class="ref-item"><div class="ref-key" style="--accent:var(--sci)">hyp</div><div class="ref-desc">Hypotenuse / distance function across multiple values.</div></div>
+      <div class="ref-item"><div class="ref-key" style="--accent:var(--sci)">ANS</div><div class="ref-desc">Recalls your last computed result into the current expression.</div></div>
+      <div class="ref-item"><div class="ref-key" style="--accent:var(--sci)">±</div><div class="ref-desc">Flips the sign of the whole current expression.</div></div>
+    </div>
+
+    <h3 class="section-h">Examples</h3>
+    <div class="example">
+      <div class="example-row"><span class="example-in">log(100)</span><span class="example-arrow">→</span><span class="example-out" style="--accent:var(--sci)">2</span></div>
+      <div class="example-row"><span class="example-in">log2(1024)</span><span class="example-arrow">→</span><span class="example-out" style="--accent:var(--sci)">10</span></div>
+      <div class="example-row"><span class="example-in">ln(1)</span><span class="example-arrow">→</span><span class="example-out" style="--accent:var(--sci)">0</span></div>
+    </div>
+  </section>
+
+  <!-- ═══════════════ PROGRAMMER ═══════════════ -->
+  <section class="tab-panel" id="tab-programmer">
+    <div class="panel-head">
+      <div class="panel-badge" style="--badge-bg:var(--prog-dim);--badge-c:var(--prog);--badge-bd:rgba(155,127,229,.3)">03</div>
+      <h2 style="color:var(--prog)">Programmer</h2>
+    </div>
+    <p class="panel-sub" style="--accent:var(--prog)">Work directly in hexadecimal, decimal, octal, or binary, with full bitwise logic and a live readout that shows your current number in all four bases at once.</p>
+
+    <h3 class="section-h">Base switching</h3>
+    <p class="prose">Tap <code>HEX</code>, <code>DEC</code>, <code>OCT</code>, or <code>BIN</code> to change how your input is interpreted and converted. All four readouts update together, so you can see the same value expressed four different ways at once.</p>
+    <div class="mockup">
+      <div class="mockup-label">Live base readout</div>
+      <div class="base-mock-row hi"><span class="base-mock-lbl">DEC</span><span class="base-mock-val">255</span></div>
+      <div class="base-mock-row"><span class="base-mock-lbl">HEX</span><span class="base-mock-val">FF</span></div>
+      <div class="base-mock-row"><span class="base-mock-lbl">OCT</span><span class="base-mock-val">377</span></div>
+      <div class="base-mock-row"><span class="base-mock-lbl">BIN</span><span class="base-mock-val">11111111</span></div>
+    </div>
+
+    <div class="callout" style="--accent:var(--prog)">
+      <span class="callout-icon">i</span>
+      <p>The digit keys <b>A</b> through <b>F</b> are only enabled while you're in <code>HEX</code> — in <code>BIN</code> mode, for instance, even the digits 2 through 9 are disabled outright. An invalid digit for the current base simply can't be entered.</p>
+    </div>
+
+    <h3 class="section-h">Reference</h3>
+    <div class="ref-grid">
+      <div class="ref-item"><div class="ref-key" style="--accent:var(--prog)">AND OR XOR</div><div class="ref-desc">Standard bitwise logic operators.</div></div>
+      <div class="ref-item"><div class="ref-key" style="--accent:var(--prog)">NOT</div><div class="ref-desc">Bitwise complement.</div></div>
+      <div class="ref-item"><div class="ref-key" style="--accent:var(--prog)">&lt;&lt;</div><div class="ref-desc">Left shift.</div></div>
+      <div class="ref-item"><div class="ref-key" style="--accent:var(--prog)">&gt;&gt;</div><div class="ref-desc">Signed right shift.</div></div>
+      <div class="ref-item"><div class="ref-key" style="--accent:var(--prog)">&gt;&gt;&gt;</div><div class="ref-desc">Unsigned right shift.</div></div>
+      <div class="ref-item"><div class="ref-key" style="--accent:var(--prog)">00</div><div class="ref-desc">Quick double-zero entry for large numbers.</div></div>
+    </div>
+
+    <h3 class="section-h">Examples</h3>
+    <div class="example">
+      <div class="example-row"><span class="example-in">FF AND F0 <span style="color:var(--dim);font-size:11px">in HEX</span></span><span class="example-arrow">→</span><span class="example-out" style="--accent:var(--prog)">F0</span></div>
+      <div class="example-row"><span class="example-in">8 &lt;&lt; 2</span><span class="example-arrow">→</span><span class="example-out" style="--accent:var(--prog)">32</span></div>
+      <div class="example-row"><span class="example-in">255 &gt;&gt;&gt; 4</span><span class="example-arrow">→</span><span class="example-out" style="--accent:var(--prog)">15</span></div>
+    </div>
+  </section>
+
+  <!-- ═══════════════ CALCULUS ═══════════════ -->
+  <section class="tab-panel" id="tab-calculus">
+    <div class="panel-head">
+      <div class="panel-badge" style="--badge-bg:var(--calc-dim);--badge-c:var(--calc);--badge-bd:rgba(255,179,71,.3)">04</div>
+      <h2 style="color:var(--calc)">Calculus</h2>
+    </div>
+    <p class="panel-sub" style="--accent:var(--calc)">Derivatives, integrals, limits, roots, and point evaluation — built with a guided keypad rather than free typing, so a stray character can't quietly turn a valid expression into an invalid one.</p>
+
+    <h3 class="section-h">Building f(x)</h3>
+    <p class="prose">Type your function using the dedicated keypad: digits, <code>x</code>, the four operators, parentheses, trig functions, logarithms, <code>exp</code>, <code>abs</code>, <code>√</code>, the constants <code>π</code> and <code>e</code>, plus <code>x²</code> for a quick square and <code>xⁿ</code> for any other power.</p>
+    <div class="callout" style="--accent:var(--calc)">
+      <span class="callout-icon">!</span>
+      <p><b>One naming note worth knowing:</b> the <code>ln</code> button writes <code>log(</code> onto the screen. That's intentional — the underlying engine uses <code>log()</code> to mean natural log specifically, with <code>log₁₀</code> kept as its own separate button for base-10. If you ever read the raw expression back, this is why.</p>
+    </div>
+
+    <h3 class="section-h">Operations</h3>
+    <ul class="prose-list" style="--accent:var(--calc)">
+      <li><b>d/dx</b> — first derivative.</li>
+      <li><b>d²/dx²</b> — second derivative.</li>
+      <li><b>∫ₐᵇ f(x)dx</b> — definite integral between two bounds. Bounds accept ordinary numbers, or the words <code>inf</code> / <code>-inf</code> for an integral that extends to infinity. The engine can correctly resolve integrals where the function itself shoots to infinity right at the edge of the interval — a case many calculators get wrong entirely.</li>
+      <li><b>lim x→c</b> — the limit of f(x) as x approaches a point, including limits <i>at</i> infinity (enter <code>inf</code> or <code>-inf</code> as the target).</li>
+      <li><b>Roots</b> — every real root of f(x) within a search range you specify.</li>
+      <li><b>Evaluate</b> — plug in a specific x and get f(x) back directly.</li>
+    </ul>
+
+    <h3 class="section-h">Examples</h3>
+    <div class="example">
+      <div class="example-row"><span class="example-in">f(x) = x², d/dx</span><span class="example-arrow">→</span><span class="example-out" style="--accent:var(--calc)">2x</span></div>
+      <div class="example-row"><span class="example-in">f(x) = exp(−x), ∫ from 0 to inf</span><span class="example-arrow">→</span><span class="example-out" style="--accent:var(--calc)">1</span></div>
+      <div class="example-row"><span class="example-in">f(x) = sin(x)/x, lim x→0</span><span class="example-arrow">→</span><span class="example-out" style="--accent:var(--calc)">1</span></div>
+      <div class="example-row"><span class="example-in">f(x) = log(x), ∫ from 0 to 1</span><span class="example-arrow">→</span><span class="example-out" style="--accent:var(--calc)">−1</span></div>
+    </div>
+
+    <div class="callout" style="--accent:var(--calc)">
+      <span class="callout-icon">i</span>
+      <p><b>Answers are shown to 7 decimal places</b>, not rounded off to look clean. If you're checking your work against a set of answer choices, you'll see the real value — something like <code>0.9998333</code> rather than a tidied-up <code>1</code> — so you can match it precisely.</p>
+    </div>
+  </section>
+
+  <!-- ═══════════════ FRACTIONS ═══════════════ -->
+  <section class="tab-panel" id="tab-fractions">
+    <div class="panel-head">
+      <div class="panel-badge" style="--badge-bg:var(--frac-dim);--badge-c:var(--frac);--badge-bd:rgba(94,232,158,.3)">05</div>
+      <h2 style="color:var(--frac)">Fractions</h2>
+    </div>
+    <p class="panel-sub" style="--accent:var(--frac)">Chain together as many fractions as a problem needs, in any combination of the four operators, and get back one exact answer — never a rounded decimal standing in for it.</p>
+
+    <h3 class="section-h">The fraction bar, not division</h3>
+    <p class="prose">Fractions mode uses a dedicated symbol, drawn as a straight underline, purely to mean <b>"this number over that number."</b> It is never the same operation as <code>÷</code>, which divides two already-built fraction values. Because the two are separate, an expression like <code>1_2+1_3</code> is never ambiguous — there's no reading of it that could mean anything other than one-half plus one-third.</p>
+    <div class="mockup">
+      <div class="mockup-label">Building a fraction</div>
+      <div class="frac-mock">
+        <div class="frac-mock-num"><span>1</span><div class="frac-mock-bar"></div><span>2</span></div>
+        <div class="frac-mock-op">+</div>
+        <div class="frac-mock-num"><span>1</span><div class="frac-mock-bar"></div><span>3</span></div>
+      </div>
+    </div>
+    <p class="prose">The <code>a_b</code> button inserts a ready-made template with your cursor already positioned inside the numerator, ready to type — move to the denominator, and keep chaining with <code>+</code>, <code>−</code>, <code>×</code>, <code>÷</code>, and parentheses for as long as the problem needs.</p>
+
+    <h3 class="section-h">Operations</h3>
+    <ul class="prose-list" style="--accent:var(--frac)">
+      <li><b>Compute</b> — build any expression and get back one exact answer.</li>
+      <li><b>Compare</b> — put two expressions side by side and find out which is larger, smaller, or whether they're equal, with the cross-multiplication shown so you can see the work.</li>
+      <li><b>Decimal → Fraction</b> — type any decimal and get its exact fraction back.</li>
+    </ul>
+
+    <h3 class="section-h">How answers are shown</h3>
+    <p class="prose">Every result appears first as a simplified fraction. If it's improper, a second line shows the equivalent mixed number. A third line shows the decimal — with an <code>=</code> if it terminates exactly, or <code>≈</code> if it's a repeating decimal being shown to 7 places.</p>
+
+    <h3 class="section-h">Examples</h3>
+    <div class="example">
+      <div class="example-row"><span class="example-in">1_2 + 1_3 − 1_4</span><span class="example-arrow">→</span><span class="example-out" style="--accent:var(--frac)">7/12</span></div>
+      <div class="example-row"><span class="example-in">7_4 + 1_3</span><span class="example-arrow">→</span><span class="example-out" style="--accent:var(--frac)">25/12</span></div>
+      <div class="example-row"><span class="example-in">0.75 <span style="color:var(--dim);font-size:11px">Decimal→Fraction</span></span><span class="example-arrow">→</span><span class="example-out" style="--accent:var(--frac)">3/4</span></div>
+    </div>
+    <p class="example-note">25/12 also displays as the mixed number 2 1/12, and as the decimal ≈ 2.0833333.</p>
+  </section>
+
+  <!-- ═══════════════ MATRIX ═══════════════ -->
+  <section class="tab-panel" id="tab-matrix">
+    <div class="panel-head">
+      <div class="panel-badge" style="--badge-bg:var(--mat-dim);--badge-c:var(--mat);--badge-bd:rgba(229,107,199,.3)">06</div>
+      <h2 style="color:var(--mat)">Matrix</h2>
+    </div>
+    <p class="panel-sub" style="--accent:var(--mat)">Addition, subtraction, multiplication, scalar multiplication, transpose, determinant, and inverse — for any size from 1×1 up to 4×4.</p>
+
+    <h3 class="section-h">Building a matrix</h3>
+    <ul class="prose-list" style="--accent:var(--mat)">
+      <li>Set the size with the row and column steppers — the grid rebuilds instantly to match.</li>
+      <li>Tap any cell to select it, then type its value. Selecting a cell that already holds a value lets you overwrite it immediately, the same way clicking into a spreadsheet cell works.</li>
+      <li>Use the on-screen arrow buttons to move between cells without reaching back to tap each one individually.</li>
+    </ul>
+    <div class="mockup">
+      <div class="mockup-label">A 2×2 matrix</div>
+      <div class="mat-mock">
+        <div class="mat-mock-bl"></div>
+        <div class="mat-mock-grid">
+          <div class="mat-mock-cell">1</div><div class="mat-mock-cell">2</div>
+          <div class="mat-mock-cell">3</div><div class="mat-mock-cell">4</div>
+        </div>
+        <div class="mat-mock-br"></div>
+      </div>
+    </div>
+
+    <div class="callout" style="--accent:var(--mat)">
+      <span class="callout-icon">i</span>
+      <p><b>Shapes stay valid automatically.</b> Switching to addition or subtraction keeps matrix B locked to the same size as matrix A. Switching to multiplication keeps B's row count matched to A's column count. Determinant and inverse keep the matrix square. An invalid shape simply isn't something you can set up.</p>
+    </div>
+
+    <h3 class="section-h">Operations</h3>
+    <div class="ref-grid">
+      <div class="ref-item"><div class="ref-key" style="--accent:var(--mat)">A + B</div><div class="ref-desc">Element-wise addition.</div></div>
+      <div class="ref-item"><div class="ref-key" style="--accent:var(--mat)">A − B</div><div class="ref-desc">Element-wise subtraction.</div></div>
+      <div class="ref-item"><div class="ref-key" style="--accent:var(--mat)">A × B</div><div class="ref-desc">Matrix multiplication.</div></div>
+      <div class="ref-item"><div class="ref-key" style="--accent:var(--mat)">k × A</div><div class="ref-desc">Scalar multiplication.</div></div>
+      <div class="ref-item"><div class="ref-key" style="--accent:var(--mat)">Aᵀ</div><div class="ref-desc">Transpose — flips rows and columns.</div></div>
+      <div class="ref-item"><div class="ref-key" style="--accent:var(--mat)">det(A)</div><div class="ref-desc">Determinant, for any square matrix up to 4×4.</div></div>
+      <div class="ref-item"><div class="ref-key" style="--accent:var(--mat)">A⁻¹</div><div class="ref-desc">Inverse, with a clear message if the matrix is singular.</div></div>
+    </div>
+
+    <h3 class="section-h">Examples</h3>
+    <div class="example">
+      <div class="example-row"><span class="example-in">[[1,2],[3,4]] + [[5,6],[7,8]]</span><span class="example-arrow">→</span><span class="example-out" style="--accent:var(--mat)">[[6,8],[10,12]]</span></div>
+      <div class="example-row"><span class="example-in">det [[1,2,3],[4,5,6],[7,8,10]]</span><span class="example-arrow">→</span><span class="example-out" style="--accent:var(--mat)">−3</span></div>
+      <div class="example-row"><span class="example-in">inverse [[2,0],[0,4]]</span><span class="example-arrow">→</span><span class="example-out" style="--accent:var(--mat)">[[1/2,0],[0,1/4]]</span></div>
+    </div>
+    <p class="example-note">Results that aren't whole numbers are given as exact fractions, using the same engine as Fractions mode — never a rounded decimal.</p>
+  </section>
+
+  <!-- ═══════════════ SHORTCUTS ═══════════════ -->
+  <section class="tab-panel" id="tab-shortcuts">
+    <div class="panel-head">
+      <div class="panel-badge" style="--badge-bg:var(--panel-3);--badge-c:#EEF0FC;--badge-bd:var(--border-2)">⌘</div>
+      <h2>Keyboard shortcuts</h2>
+    </div>
+    <p class="panel-sub">What your keyboard does depends on which mode you're in — full typing in the three modes built for it, and a smaller, safe set of keys everywhere input is guided by design.</p>
+
+    <h3 class="section-h">Standard, Scientific &amp; Programmer</h3>
+    <table class="kbd-table">
+      <tr><th>Keys</th><th>Action</th></tr>
+      <tr><td><kbd>0</kbd>–<kbd>9</kbd></td><td>Enter digits directly</td></tr>
+      <tr><td><kbd>+</kbd> <kbd>-</kbd> <kbd>*</kbd> <kbd>/</kbd></td><td>Basic operators</td></tr>
+      <tr><td><kbd>^</kbd></td><td>Power</td></tr>
+      <tr><td><kbd>!</kbd></td><td>Factorial</td></tr>
+      <tr><td><kbd>(</kbd> <kbd>)</kbd></td><td>Parentheses</td></tr>
+      <tr><td><kbd>%</kbd></td><td>Modulo</td></tr>
+      <tr><td><kbd>Enter</kbd></td><td>Evaluate the current expression</td></tr>
+      <tr><td><kbd>Backspace</kbd></td><td>Delete the character before the cursor</td></tr>
+      <tr><td><kbd>Esc</kbd> / <kbd>Delete</kbd></td><td>Clear the display</td></tr>
+      <tr><td>← → Home End</td><td>Move the cursor within the expression</td></tr>
+    </table>
+
+    <h3 class="section-h">Calculus &amp; Fractions input fields</h3>
+    <p class="prose">These fields don't accept direct character typing — see <a href="#" data-jump="overview" style="color:var(--std);text-decoration:underline">why, in Getting Started</a>. The following keys still work:</p>
+    <table class="kbd-table">
+      <tr><th>Keys</th><th>Action</th></tr>
+      <tr><td><kbd>Enter</kbd></td><td>Compute</td></tr>
+      <tr><td><kbd>Backspace</kbd></td><td>Smart delete — removes a whole function name in one press where relevant</td></tr>
+      <tr><td><kbd>Esc</kbd></td><td>Clear the field</td></tr>
+      <tr><td>← → ↑ ↓ Home End</td><td>Move the cursor without inserting anything</td></tr>
+      <tr><td><kbd>Ctrl</kbd>/<kbd>Cmd</kbd> + key</td><td>Standard shortcuts — copy, select all, and so on — pass through normally</td></tr>
+    </table>
+
+    <h3 class="section-h">Matrix mode</h3>
+    <p class="prose">Matrix cells are selected by tapping, and values are entered with the on-screen keypad. Use the four arrow buttons above the keypad to move between cells without reaching back into the grid each time.</p>
+  </section>
+
+  <!-- ═══════════════ FAQ ═══════════════ -->
+  <section class="tab-panel" id="tab-faq">
+    <div class="panel-head">
+      <div class="panel-badge" style="--badge-bg:var(--panel-3);--badge-c:#EEF0FC;--badge-bd:var(--border-2)">?</div>
+      <h2>Frequently asked questions</h2>
+    </div>
+    <p class="panel-sub">Everything else people ask about.</p>
+
+    <div id="faqList">
+      <div class="faq-item open">
+        <button class="faq-q">Why can't I type directly into the Calculus, Fractions, or Matrix inputs?<span class="faq-icon">+</span></button>
+        <div class="faq-a"><p>Guided input closes off an entire category of mistake before it can happen — the wrong symbol, an ambiguous fraction, a mismatched parenthesis. Every value in these three modes is entered through buttons that only ever produce valid syntax, so what you build is always something the calculator can actually evaluate.</p></div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q">What's the difference between <code>%</code> and <code>mod</code>?<span class="faq-icon">+</span></button>
+        <div class="faq-a"><p>Nothing, mathematically — they're two familiar labels for the exact same operation, the remainder left over after division. Both are offered in Standard and Scientific mode so you can use whichever one you already think in.</p></div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q">Why does <code>log(x)</code> mean natural log in Calculus mode, but base 10 elsewhere?<span class="faq-icon">+</span></button>
+        <div class="faq-a"><p>Each mode is upfront about its own convention. In Scientific mode, <code>ln</code> and <code>log₁₀</code> are two clearly separate buttons. In Calculus mode, typing <code>ln</code> writes <code>log(</code> onto the screen because the expression engine that powers derivatives and integrals uses <code>log()</code> specifically to mean natural log, with base-10 kept as its own distinct button labelled <code>log₁₀</code>.</p></div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q">Is my calculation history saved?<span class="faq-icon">+</span></button>
+        <div class="faq-a"><p>Yes — automatically, and without needing an account. Your most recent 30 calculations across every mode are stored on your device and are still there the next time you open Skuul-CalcX. Tap any entry to bring its result back into the display.</p></div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q">Does switching modes lose my work?<span class="faq-icon">+</span></button>
+        <div class="faq-a"><p>No. Whatever you've built in Calculus, Fractions, or Matrix mode — your function, your fraction expression, your matrix grid — stays exactly as you left it if you switch to another mode and come back. Nothing resets until you clear it yourself.</p></div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q">Can I use Skuul-CalcX without an internet connection?<span class="faq-icon">+</span></button>
+        <div class="faq-a"><p>Standard, Scientific, Programmer, Fractions, and Matrix modes work fully offline once the page has loaded. Calculus mode needs a connection the first time you open it in a session, to load its math engine — after that, it keeps working until you refresh the page.</p></div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q">Why do some answers show 7 decimal places instead of a clean, rounded number?<span class="faq-icon">+</span></button>
+        <div class="faq-a"><p>So the digits you see are the ones you'd actually need to match an answer against a set of options — rounding a result like <code>0.9998333</code> up to a tidy <code>1</code> can hide the exact figure you're checking for. Calculus results are always shown at full working precision rather than smoothed over.</p></div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q">Why do Fractions and Matrix results show fractions instead of decimals?<span class="faq-icon">+</span></button>
+        <div class="faq-a"><p>Both modes run on the same exact-arithmetic engine internally, so a result like <code>1/3</code> stays <code>1/3</code> all the way through a calculation instead of collapsing into <code>0.3333333</code> partway and accumulating rounding error. You still get the decimal form too — just as a secondary line underneath the exact answer.</p></div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q">What does the COPY button copy exactly?<span class="faq-icon">+</span></button>
+        <div class="faq-a"><p>Whatever is currently shown as your result — hover or tap near it to reveal the button, then tap it to send that value straight to your clipboard.</p></div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <p><b>Skuul-CalcX</b> · powered by CodeVerse · in partnership with E-Skuuled</p>
+  <div class="foot-links">
+    <span>Documentation v2.4</span>
+    <span>Updated July 2026</span>
+  </div>
+</footer>
+
+<script>
+/* ═══════════ TAB SWITCHING ═══════════ */
+const tabButtons = document.querySelectorAll('.tabbar button, [data-jump]');
+function showTab(name){
+  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.toggle('on', p.id==='tab-'+name));
+  document.querySelectorAll('.tabbar button').forEach(b=>b.classList.toggle('on', b.dataset.tab===name));
+  const bar = document.querySelector('.tabbar-outer');
+  if(bar && bar.scrollIntoView) bar.scrollIntoView({behavior:'smooth', block:'start'});
+}
+tabButtons.forEach(btn=>{
+  const name = btn.dataset.tab || btn.dataset.jump;
+  if(!name) return;
+  btn.addEventListener('click', (e)=>{
+    if(btn.tagName==='A') e.preventDefault();
+    showTab(name);
+  });
+});
+
+/* ═══════════ FAQ ACCORDION ═══════════ */
+document.querySelectorAll('.faq-q').forEach(q=>{
+  q.addEventListener('click', ()=>{
+    const item = q.closest('.faq-item');
+    const wasOpen = item.classList.contains('open');
+    document.querySelectorAll('.faq-item').forEach(i=>i.classList.remove('open'));
+    if(!wasOpen) item.classList.add('open');
+  });
+});
+
+/* ═══════════ HERO DISPLAY — cycling through each mode ═══════════ */
+const heroFrames = [
+  {tag:'STANDARD',   expr:'12 × 4',                  result:'48',        c:'#00E5CC'},
+  {tag:'SCIENTIFIC', expr:'sin(30°)',                 result:'0.5',       c:'#5B9BD5'},
+  {tag:'PROGRAMMER', expr:'FF AND F0',                 result:'F0',        c:'#9B7FE5'},
+  {tag:'CALCULUS',   expr:"d/dx [x²]",                result:'2x',        c:'#FFB347'},
+  {tag:'FRACTIONS',  expr:'1/2 + 1/3 − 1/4',          result:'7/12',      c:'#5EE89E'},
+  {tag:'MATRIX',     expr:'det [1,2,3;4,5,6;7,8,10]', result:'−3',        c:'#E56BC7'},
+];
+const hdTag = document.getElementById('hdTag');
+const hdExpr = document.getElementById('hdExpr');
+const hdResult = document.getElementById('hdResult');
+const hdDots = document.getElementById('hdDots');
+heroFrames.forEach((_,i)=>{
+  const d=document.createElement('span');
+  d.className='hero-dot'+(i===0?' on':'');
+  hdDots.appendChild(d);
+});
+const dotEls = hdDots.querySelectorAll('.hero-dot');
+
+let heroIdx = 0;
+function paintHero(i){
+  const f = heroFrames[i];
+  hdTag.style.color = f.c;
+  hdTag.style.background = f.c+'22';
+  hdTag.style.borderColor = f.c+'55';
+  hdResult.style.color = f.c;
+  hdTag.textContent = f.tag;
+  hdExpr.textContent = f.expr;
+  hdResult.textContent = f.result;
+  dotEls.forEach((d,j)=>d.classList.toggle('on', j===i));
+}
+paintHero(0);
+
+const reduceMotion = window.matchMedia ? window.matchMedia('(prefers-reduced-motion: reduce)').matches : false;
+if(!reduceMotion){
+  setInterval(()=>{
+    heroIdx = (heroIdx+1) % heroFrames.length;
+    const wrap = document.querySelector('.hero-display');
+    wrap.style.opacity = '0';
+    setTimeout(()=>{ paintHero(heroIdx); wrap.style.opacity='1'; }, 260);
+  }, 2800);
+  document.querySelector('.hero-display').style.transition = 'opacity .26s ease';
+}
+</script>
+</body>
+</html>

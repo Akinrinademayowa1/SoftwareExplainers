@@ -1,0 +1,887 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Skuul-RMS Documentation — Everything you need to run results, end to end</title>
+<meta name="description" content="Complete documentation for Skuul-RMS: configuration, uploading results, report cards, achievements, certificates, the student portal, and account security." />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700;9..144,800;9..144,900&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<style>
+  /* ═══════════════════════ DESIGN TOKENS ═══════════════════════ */
+  :root{
+    --bg:#0a0d16; --bg-soft:#0d111c; --surface:#131826; --surface-2:#1a2033; --surface-3:#212844;
+    --border:#232a3d; --border-strong:#2d3550;
+    --text:#e7e9f0; --text-muted:#8891a8; --text-faint:#5b6478;
+    --violet:#8b5cf6; --violet-dim:#6d28d9; --violet-glow:rgba(139,92,246,.16); --violet-line:rgba(139,92,246,.35);
+    --gold:#d4af37; --gold-soft:#e8c96a; --gold-dim:#9c7e24; --gold-glow:rgba(212,175,55,.16);
+    --green:#34d399; --green-glow:rgba(52,211,153,.12);
+    --amber:#f5a623; --amber-glow:rgba(245,166,35,.12);
+    --red:#f87171; --red-glow:rgba(248,113,113,.12);
+    --font-display:'Fraunces',serif; --font-body:'IBM Plex Sans',sans-serif; --font-mono:'IBM Plex Mono',monospace;
+    --sidebar-w:296px; --content-max:760px;
+    --radius:14px; --radius-sm:9px;
+    --shadow:0 20px 50px rgba(0,0,0,.45);
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    background:var(--bg); color:var(--text); font-family:var(--font-body);
+    font-size:16px; line-height:1.7; -webkit-font-smoothing:antialiased;
+    background-image:
+      radial-gradient(ellipse 900px 500px at 15% -5%, rgba(139,92,246,.08), transparent 60%),
+      radial-gradient(ellipse 700px 500px at 100% 10%, rgba(212,175,55,.05), transparent 55%);
+    background-attachment:fixed;
+  }
+  a{color:inherit;text-decoration:none}
+  ::selection{background:var(--violet-glow);color:var(--gold-soft)}
+  ::-webkit-scrollbar{width:10px;height:10px}
+  ::-webkit-scrollbar-track{background:transparent}
+  ::-webkit-scrollbar-thumb{background:var(--border-strong);border-radius:6px}
+  ::-webkit-scrollbar-thumb:hover{background:var(--violet-dim)}
+
+  /* ═══════════════════════ READING PROGRESS ═══════════════════════ */
+  #readProgress{position:fixed;top:0;left:0;height:3px;background:linear-gradient(90deg,var(--violet),var(--gold));width:0%;z-index:500;transition:width .1s linear}
+
+  /* ═══════════════════════ SIDEBAR ═══════════════════════ */
+  .sidebar{
+    position:fixed;top:0;left:0;width:var(--sidebar-w);height:100vh;
+    background:var(--bg-soft);border-right:1px solid var(--border);
+    display:flex;flex-direction:column;z-index:200;
+  }
+  .sb-brand{padding:1.7rem 1.6rem 1.3rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:.75rem}
+  .sb-mark{width:38px;height:38px;flex-shrink:0;border-radius:9px;background:linear-gradient(150deg,var(--violet),var(--violet-dim));display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-weight:800;font-size:1rem;color:#fff;box-shadow:0 4px 14px rgba(139,92,246,.35)}
+  .sb-brand-text{line-height:1.25}
+  .sb-brand-name{font-family:var(--font-display);font-weight:700;font-size:1.05rem;color:var(--text)}
+  .sb-brand-sub{font-size:.68rem;color:var(--text-faint);letter-spacing:.06em;text-transform:uppercase}
+
+  .sb-search{padding:1rem 1.3rem;border-bottom:1px solid var(--border)}
+  .sb-search-box{position:relative}
+  .sb-search-box input{
+    width:100%;background:var(--surface);border:1px solid var(--border);border-radius:9px;
+    padding:.6rem .8rem .6rem 2.2rem;color:var(--text);font-family:var(--font-body);font-size:.83rem;
+  }
+  .sb-search-box input:focus{outline:none;border-color:var(--violet-line);box-shadow:0 0 0 3px var(--violet-glow)}
+  .sb-search-box input::placeholder{color:var(--text-faint)}
+  .sb-search-box i{position:absolute;left:.75rem;top:50%;transform:translateY(-50%);color:var(--text-faint);font-size:.78rem}
+  .sb-search-kbd{position:absolute;right:.6rem;top:50%;transform:translateY(-50%);font-size:.62rem;color:var(--text-faint);background:var(--surface-2);border:1px solid var(--border);border-radius:4px;padding:.1rem .35rem;font-family:var(--font-mono)}
+
+  .sb-nav{flex:1;overflow-y:auto;padding:1rem 0 1.5rem;position:relative}
+  /* the "ledger spine" — a tick-marked rail that lights up as you scroll */
+  .sb-spine{position:absolute;left:24px;top:8px;bottom:8px;width:2px;background:var(--border)}
+  .sb-group{position:relative;padding:0 1.3rem;margin-bottom:.35rem}
+  .sb-group-label{font-size:.66rem;font-weight:600;letter-spacing:.09em;text-transform:uppercase;color:var(--text-faint);padding:.9rem 0 .5rem 1.5rem}
+  .sb-link{
+    position:relative;display:flex;align-items:center;gap:.6rem;padding:.42rem .7rem .42rem 1.5rem;
+    border-radius:8px;font-size:.86rem;color:var(--text-muted);cursor:pointer;transition:all .15s;
+  }
+  .sb-link::before{content:'';position:absolute;left:-1.5px;top:50%;width:7px;height:7px;border-radius:50%;background:var(--border-strong);transform:translateY(-50%);transition:all .2s}
+  .sb-link:hover{color:var(--text);background:var(--surface)}
+  .sb-link.active{color:var(--gold-soft);background:var(--violet-glow);font-weight:600}
+  .sb-link.active::before{background:var(--gold);box-shadow:0 0 0 4px var(--gold-glow)}
+  .sb-link i{width:16px;text-align:center;font-size:.8rem;opacity:.75;flex-shrink:0}
+  .sb-link .sb-count{margin-left:auto;font-size:.66rem;color:var(--text-faint);font-family:var(--font-mono)}
+  .sb-hidden{display:none !important}
+
+  .sb-footer{padding:1rem 1.3rem;border-top:1px solid var(--border);font-size:.7rem;color:var(--text-faint)}
+  .sb-footer a{color:var(--violet);font-weight:600}
+
+  /* ═══════════════════════ MOBILE TOPBAR ═══════════════════════ */
+  .mobile-topbar{display:none;position:sticky;top:0;z-index:250;background:var(--bg-soft);border-bottom:1px solid var(--border);padding:.85rem 1.1rem;align-items:center;justify-content:space-between}
+  .mobile-topbar .sb-brand{padding:0;border:none}
+  .mobile-topbar .sb-mark{width:30px;height:30px;font-size:.8rem}
+  .mobile-btn{background:var(--surface);border:1px solid var(--border);color:var(--text);width:38px;height:38px;border-radius:9px;display:flex;align-items:center;justify-content:center;cursor:pointer}
+  #sidebarOverlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:190}
+
+  /* ═══════════════════════ MAIN LAYOUT ═══════════════════════ */
+  .main{margin-left:var(--sidebar-w);min-height:100vh}
+  .content{max-width:var(--content-max);margin:0 auto;padding:0 2.2rem 6rem}
+
+  /* ═══════════════════════ HERO ═══════════════════════ */
+  .hero{padding:5.5rem 0 4rem;position:relative}
+  .hero-eyebrow{display:inline-flex;align-items:center;gap:.5rem;font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;color:var(--gold-soft);background:var(--gold-glow);border:1px solid rgba(212,175,55,.3);padding:.35rem .8rem;border-radius:999px;margin-bottom:1.6rem}
+  .hero-title{font-family:var(--font-display);font-weight:800;font-size:3.1rem;line-height:1.08;letter-spacing:-.01em;margin-bottom:1.1rem;max-width:640px}
+  .hero-title em{font-style:italic;font-weight:500;color:var(--violet)}
+  .hero-sub{font-size:1.12rem;color:var(--text-muted);max-width:560px;margin-bottom:2.1rem;line-height:1.65}
+  .hero-ctas{display:flex;gap:.8rem;flex-wrap:wrap;margin-bottom:3rem}
+  .hero-btn{display:inline-flex;align-items:center;gap:.55rem;padding:.75rem 1.35rem;border-radius:10px;font-weight:600;font-size:.9rem;cursor:pointer;transition:all .18s}
+  .hero-btn-primary{background:var(--violet);color:#fff;box-shadow:0 10px 30px rgba(139,92,246,.3)}
+  .hero-btn-primary:hover{background:var(--violet-dim);transform:translateY(-2px)}
+  .hero-btn-ghost{background:var(--surface);border:1px solid var(--border-strong);color:var(--text)}
+  .hero-btn-ghost:hover{border-color:var(--violet-line);color:var(--violet)}
+
+  /* the wax seal — signature element */
+  .hero-seal-wrap{position:absolute;top:4.2rem;right:-.5rem;width:150px;height:150px}
+  .hero-seal{width:100%;height:100%;opacity:0;transform:scale(1.5) rotate(-18deg);animation:sealStamp .9s cubic-bezier(.2,1.4,.4,1) .3s forwards}
+  @keyframes sealStamp{0%{opacity:0;transform:scale(1.8) rotate(-25deg)}60%{opacity:1;transform:scale(.94) rotate(4deg)}100%{opacity:1;transform:scale(1) rotate(0)}}
+
+  .hero-meta-row{display:flex;gap:2.2rem;flex-wrap:wrap;padding-top:2rem;border-top:1px solid var(--border)}
+  .hero-meta-item{display:flex;flex-direction:column;gap:.15rem}
+  .hero-meta-val{font-family:var(--font-display);font-weight:700;font-size:1.3rem;color:var(--text)}
+  .hero-meta-label{font-size:.72rem;color:var(--text-faint);letter-spacing:.03em}
+
+  /* ═══════════════════════ SECTIONS ═══════════════════════ */
+  section.doc-section{padding-top:3.6rem;scroll-margin-top:1.5rem}
+  section.doc-section:first-of-type{padding-top:0}
+  .sec-eyebrow{font-size:.72rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--violet);margin-bottom:.6rem;display:flex;align-items:center;gap:.5rem}
+  .sec-eyebrow::before{content:'';width:18px;height:2px;background:var(--gold);display:inline-block}
+  h2.sec-title{font-family:var(--font-display);font-weight:700;font-size:1.9rem;margin-bottom:.9rem;letter-spacing:-.01em}
+  h3.sub-title{font-family:var(--font-display);font-weight:600;font-size:1.28rem;margin:2.2rem 0 .8rem;color:var(--text)}
+  h4.mini-title{font-family:var(--font-body);font-weight:700;font-size:.98rem;margin:1.5rem 0 .5rem;color:var(--text)}
+  p{color:var(--text-muted);margin-bottom:1.1rem}
+  p strong,li strong{color:var(--text);font-weight:600}
+  ul.doc-list,ol.doc-list{color:var(--text-muted);margin:0 0 1.2rem 1.3rem}
+  ul.doc-list li,ol.doc-list li{margin-bottom:.55rem;padding-left:.3rem}
+  ul.doc-list{list-style:none;margin-left:0}
+  ul.doc-list li{position:relative;padding-left:1.4rem}
+  ul.doc-list li::before{content:'';position:absolute;left:0;top:.62rem;width:6px;height:6px;background:var(--violet);border-radius:1px;transform:rotate(45deg)}
+  ol.doc-list{counter-reset:doc-counter}
+  ol.doc-list li{list-style:none;position:relative;padding-left:2rem;counter-increment:doc-counter}
+  ol.doc-list li::before{content:counter(doc-counter);position:absolute;left:0;top:0;width:1.5rem;height:1.5rem;background:var(--surface-2);border:1px solid var(--border-strong);border-radius:6px;display:flex;align-items:center;justify-content:center;font-family:var(--font-mono);font-size:.72rem;color:var(--gold-soft);font-weight:600}
+  .divider{height:1px;background:var(--border);margin:3.2rem 0}
+
+  /* ═══════════════════════ CALLOUTS ═══════════════════════ */
+  .callout{border-radius:var(--radius-sm);padding:1rem 1.2rem;margin:1.3rem 0;display:flex;gap:.8rem;border:1px solid}
+  .callout i{margin-top:.15rem;flex-shrink:0}
+  .callout p{margin:0;font-size:.9rem;color:var(--text)}
+  .callout p:not(:last-child){margin-bottom:.5rem}
+  .callout-title{font-weight:700;font-size:.85rem;margin-bottom:.25rem;display:block}
+  .callout-tip{background:var(--green-glow);border-color:rgba(52,211,153,.3)}
+  .callout-tip i{color:var(--green)}
+  .callout-note{background:var(--violet-glow);border-color:var(--violet-line)}
+  .callout-note i{color:var(--violet)}
+  .callout-warn{background:var(--amber-glow);border-color:rgba(245,166,35,.32)}
+  .callout-warn i{color:var(--amber)}
+  .callout-danger{background:var(--red-glow);border-color:rgba(248,113,113,.32)}
+  .callout-danger i{color:var(--red)}
+
+  /* ═══════════════════════ CODE / CSV BLOCKS ═══════════════════════ */
+  .code-block{background:#0d1420;border:1px solid var(--border);border-radius:var(--radius-sm);margin:1.2rem 0;overflow:hidden}
+  .code-head{display:flex;justify-content:space-between;align-items:center;padding:.55rem .9rem;background:var(--surface);border-bottom:1px solid var(--border)}
+  .code-label{font-size:.72rem;color:var(--text-faint);font-family:var(--font-mono);letter-spacing:.02em}
+  .copy-btn{display:flex;align-items:center;gap:.35rem;background:transparent;border:1px solid var(--border-strong);color:var(--text-muted);font-size:.7rem;padding:.28rem .6rem;border-radius:6px;cursor:pointer;font-family:var(--font-body);transition:all .15s}
+  .copy-btn:hover{color:var(--gold-soft);border-color:var(--gold-dim)}
+  .code-block pre{padding:1rem 1.1rem;overflow-x:auto;font-family:var(--font-mono);font-size:.81rem;line-height:1.65;color:#c9d1e0}
+  .code-block .csv-h{color:var(--gold-soft)}
+  .code-block .csv-n{color:var(--violet)}
+
+  /* ═══════════════════════ TABLES ═══════════════════════ */
+  .doc-table-wrap{overflow-x:auto;margin:1.3rem 0;border:1px solid var(--border);border-radius:var(--radius-sm)}
+  table.doc-table{width:100%;border-collapse:collapse;font-size:.86rem}
+  table.doc-table th{background:var(--surface);color:var(--gold-soft);text-align:left;padding:.7rem .9rem;font-weight:600;font-size:.76rem;text-transform:uppercase;letter-spacing:.03em;border-bottom:1px solid var(--border)}
+  table.doc-table td{padding:.7rem .9rem;border-bottom:1px solid var(--border);color:var(--text-muted)}
+  table.doc-table tr:last-child td{border-bottom:none}
+  table.doc-table td strong{color:var(--text)}
+
+  /* ═══════════════════════ CARDS GRID (feature/step cards) ═══════════════════════ */
+  .card-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:.9rem;margin:1.4rem 0}
+  .doc-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);padding:1.1rem 1.2rem;transition:all .2s}
+  .doc-card:hover{border-color:var(--violet-line);transform:translateY(-2px)}
+  .doc-card i{font-size:1.15rem;color:var(--violet);margin-bottom:.6rem;display:block}
+  .doc-card h5{font-size:.9rem;font-weight:700;color:var(--text);margin-bottom:.3rem}
+  .doc-card p{font-size:.8rem;color:var(--text-muted);margin:0}
+
+  /* ═══════════════════════ RANK / GRADE BADGES (reused product vocabulary) ═══════════════════════ */
+  .rank-row{display:flex;gap:.7rem;flex-wrap:wrap;margin:1.3rem 0}
+  .rank-badge{display:flex;align-items:center;gap:.6rem;background:var(--surface);border:1px solid var(--border);border-radius:999px;padding:.4rem .9rem .4rem .4rem;font-size:.82rem}
+  .rank-circle{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-weight:700;font-size:.72rem;color:#fff;flex-shrink:0}
+  .rank-1 .rank-circle{background:linear-gradient(135deg,#F4D03F,#B8860B)}
+  .rank-2 .rank-circle{background:linear-gradient(135deg,#E8E8E8,#9B9B9B)}
+  .rank-3 .rank-circle{background:linear-gradient(135deg,#E0A868,#A9672F)}
+  .rank-4 .rank-circle{background:linear-gradient(135deg,#c4b5fd,#7c3aed)}
+
+  /* ═══════════════════════ CERTIFICATE PREVIEW SWATCHES ═══════════════════════ */
+  .cert-swatch-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1rem;margin:1.4rem 0}
+  .cert-swatch{border-radius:var(--radius-sm);overflow:hidden;border:1px solid var(--border)}
+  .cert-swatch-preview{height:100px;position:relative}
+  .cert-swatch-preview.classic{background:linear-gradient(135deg,#3a3120,#4a3d24);border-bottom:3px solid var(--gold)}
+  .cert-swatch-preview.aurora{background:linear-gradient(100deg,#0d9488,#7c3aed 55%,#db2777)}
+  .cert-swatch-preview.emerald{background:linear-gradient(135deg,#065f46,#0d9488,#9c7e24)}
+  .cert-swatch-body{padding:.8rem .95rem;background:var(--surface)}
+  .cert-swatch-name{font-weight:700;font-size:.85rem;color:var(--text);margin-bottom:.2rem}
+  .cert-swatch-desc{font-size:.75rem;color:var(--text-muted);margin:0}
+
+  /* ═══════════════════════ REPORT CARD DIAGRAM ═══════════════════════ */
+  .rc-diagram{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1.4rem;margin:1.6rem 0}
+  .rc-diagram-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+  @media(max-width:640px){.rc-diagram-grid{grid-template-columns:1fr}}
+  .rc-zone{background:var(--surface-2);border:1px dashed var(--border-strong);border-radius:8px;padding:.8rem .95rem;display:flex;gap:.7rem}
+  .rc-zone-num{width:22px;height:22px;border-radius:50%;background:var(--violet-glow);color:var(--violet);border:1px solid var(--violet-line);display:flex;align-items:center;justify-content:center;font-size:.68rem;font-weight:700;flex-shrink:0;font-family:var(--font-mono)}
+  .rc-zone-text h5{font-size:.82rem;color:var(--text);margin-bottom:.15rem;font-weight:700}
+  .rc-zone-text p{font-size:.76rem;color:var(--text-muted);margin:0}
+
+  /* ═══════════════════════ FAQ ACCORDION ═══════════════════════ */
+  .faq-item{border:1px solid var(--border);border-radius:var(--radius-sm);margin-bottom:.7rem;overflow:hidden;background:var(--surface)}
+  .faq-q{display:flex;justify-content:space-between;align-items:center;padding:1rem 1.2rem;cursor:pointer;font-weight:600;font-size:.92rem}
+  .faq-q i{transition:transform .25s;color:var(--violet);flex-shrink:0;margin-left:1rem}
+  .faq-item.open .faq-q i{transform:rotate(180deg)}
+  .faq-a{max-height:0;overflow:hidden;transition:max-height .3s ease}
+  .faq-item.open .faq-a{max-height:400px}
+  .faq-a-inner{padding:0 1.2rem 1.1rem;font-size:.87rem;color:var(--text-muted);line-height:1.65}
+
+  /* ═══════════════════════ KEYBOARD KEY ═══════════════════════ */
+  kbd{background:var(--surface-2);border:1px solid var(--border-strong);border-bottom-width:2px;border-radius:5px;padding:.1rem .45rem;font-family:var(--font-mono);font-size:.78rem;color:var(--gold-soft)}
+
+  /* ═══════════════════════ FOOTER ═══════════════════════ */
+  .doc-footer{border-top:1px solid var(--border);margin-top:4rem;padding-top:2.5rem;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem}
+  .doc-footer p{margin:0;font-size:.82rem;color:var(--text-faint)}
+  .footer-links{display:flex;gap:1.4rem;font-size:.82rem}
+  .footer-links a{color:var(--text-muted)}
+  .footer-links a:hover{color:var(--violet)}
+
+  /* ═══════════════════════ BACK TO TOP ═══════════════════════ */
+  #backToTop{position:fixed;bottom:2rem;right:2rem;width:44px;height:44px;border-radius:50%;background:var(--surface);border:1px solid var(--border-strong);color:var(--text);display:flex;align-items:center;justify-content:center;cursor:pointer;opacity:0;pointer-events:none;transition:all .25s;z-index:150;box-shadow:var(--shadow)}
+  #backToTop.show{opacity:1;pointer-events:auto}
+  #backToTop:hover{border-color:var(--violet-line);color:var(--violet)}
+
+  /* ═══════════════════════ SCROLL REVEAL ═══════════════════════ */
+  .reveal{opacity:0;transform:translateY(14px);transition:opacity .6s ease,transform .6s ease}
+  .reveal.in{opacity:1;transform:translateY(0)}
+
+  /* ═══════════════════════ RESPONSIVE ═══════════════════════ */
+  @media(max-width:960px){
+    .sidebar{transform:translateX(-100%);transition:transform .25s ease;box-shadow:var(--shadow)}
+    .sidebar.open{transform:translateX(0)}
+    .main{margin-left:0}
+    .mobile-topbar{display:flex}
+    #sidebarOverlay.show{display:block}
+    .hero-seal-wrap{display:none}
+  }
+  @media(max-width:640px){
+    .hero{padding:2.6rem 0 2.5rem}
+    .hero-title{font-size:2.1rem}
+    .content{padding:0 1.2rem 4rem}
+    h2.sec-title{font-size:1.5rem}
+  }
+</style>
+</head>
+<body>
+
+<div id="readProgress"></div>
+
+<!-- ═══════ MOBILE TOPBAR ═══════ -->
+<div class="mobile-topbar">
+  <div class="sb-brand">
+    <div class="sb-mark">SR</div>
+    <div class="sb-brand-text"><div class="sb-brand-name">Skuul-RMS</div></div>
+  </div>
+  <button class="mobile-btn" onclick="Docs.toggleSidebar()"><i class="fas fa-bars"></i></button>
+</div>
+<div id="sidebarOverlay" onclick="Docs.closeSidebar()"></div>
+
+<!-- ═══════ SIDEBAR ═══════ -->
+<nav class="sidebar" id="sidebar">
+  <div class="sb-brand">
+    <div class="sb-mark">SR</div>
+    <div class="sb-brand-text">
+      <div class="sb-brand-name">Skuul-RMS</div>
+      <div class="sb-brand-sub">Documentation</div>
+    </div>
+  </div>
+
+  <div class="sb-search">
+    <div class="sb-search-box">
+      <i class="fas fa-search"></i>
+      <input type="text" id="docSearch" placeholder="Search documentation..." onkeyup="Docs.search(event)" />
+      <span class="sb-search-kbd">/</span>
+    </div>
+  </div>
+
+  <div class="sb-nav" id="sbNav">
+    <div class="sb-spine"></div>
+
+    <div class="sb-group">
+      <div class="sb-group-label">Start Here</div>
+      <div class="sb-link" data-target="overview" data-kw="introduction what is skuul-rms overview"><i class="fas fa-house"></i>Overview</div>
+      <div class="sb-link" data-target="getting-started" data-kw="sign up create account login school code"><i class="fas fa-rocket"></i>Getting Started</div>
+    </div>
+
+    <div class="sb-group">
+      <div class="sb-group-label">Admin Dashboard</div>
+      <div class="sb-link" data-target="dashboard" data-kw="charts statistics overview cards achievements top performers"><i class="fas fa-chart-line"></i>Dashboard</div>
+      <div class="sb-link" data-target="configuration" data-kw="school profile subheading sessions terms classes grading structure certificate design logo signature"><i class="fas fa-sliders"></i>Configuration</div>
+      <div class="sb-link" data-target="uploading" data-kw="csv upload first test second test exam class conflict"><i class="fas fa-upload"></i>Uploading Results</div>
+      <div class="sb-link" data-target="report-cards" data-kw="report card position ranking grading pdf word download"><i class="fas fa-file-lines"></i>Report Cards</div>
+      <div class="sb-link" data-target="managing" data-kw="manage reports filter delete"><i class="fas fa-folder-open"></i>Managing Reports</div>
+      <div class="sb-link" data-target="achievements" data-kw="achievements certificates best of session term class subject champions"><i class="fas fa-trophy"></i>Achievements &amp; Certificates</div>
+    </div>
+
+    <div class="sb-group">
+      <div class="sb-group-label">Students</div>
+      <div class="sb-link" data-target="student-portal" data-kw="student portal search results analytics"><i class="fas fa-user-graduate"></i>Student Portal</div>
+    </div>
+
+    <div class="sb-group">
+      <div class="sb-group-label">Account</div>
+      <div class="sb-link" data-target="security" data-kw="security password email username danger zone reset"><i class="fas fa-shield-halved"></i>Security</div>
+      <div class="sb-link" data-target="activity-log" data-kw="activity log audit"><i class="fas fa-clock-rotate-left"></i>Activity Log</div>
+      <div class="sb-link" data-target="appearance" data-kw="dark mode theme"><i class="fas fa-moon"></i>Appearance</div>
+    </div>
+
+    <div class="sb-group">
+      <div class="sb-group-label">Reference</div>
+      <div class="sb-link" data-target="faq" data-kw="faq frequently asked questions help"><i class="fas fa-circle-question"></i>FAQ</div>
+    </div>
+  </div>
+
+  <div class="sb-footer">
+    Skuul-RMS is built and maintained by <a href="#">CodeVerse</a>.
+  </div>
+</nav>
+
+<!-- ═══════ MAIN CONTENT ═══════ -->
+<div class="main">
+  <div class="content">
+
+    <!-- ═══════ HERO ═══════ -->
+    <div class="hero">
+      <div class="hero-seal-wrap">
+        <svg class="hero-seal" viewBox="0 0 140 140" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <radialGradient id="sealGrad" cx="35%" cy="30%" r="70%">
+              <stop offset="0%" stop-color="#F6E7A8"/><stop offset="45%" stop-color="#D4AF37"/><stop offset="100%" stop-color="#8f7220"/>
+            </radialGradient>
+          </defs>
+          <circle cx="70" cy="70" r="62" fill="url(#sealGrad)" stroke="#7A5C0A" stroke-width="2"/>
+          <circle cx="70" cy="70" r="52" fill="none" stroke="#3a3120" stroke-width="1.4" stroke-dasharray="2 4"/>
+          <text x="70" y="47" font-size="8" text-anchor="middle" fill="#3a3120" font-family="IBM Plex Mono" letter-spacing="2" font-weight="600">VERIFIED</text>
+          <text x="70" y="80" font-size="19" text-anchor="middle" fill="#3a3120" font-family="Fraunces" font-weight="700">SR</text>
+          <text x="70" y="98" font-size="7" text-anchor="middle" fill="#3a3120" font-family="IBM Plex Mono" letter-spacing="2" font-weight="600">RECORDS</text>
+        </svg>
+      </div>
+
+      <div class="hero-eyebrow"><i class="fas fa-signal"></i> Live documentation</div>
+      <h1 class="hero-title">Every result,<br><em>accounted for.</em></h1>
+      <p class="hero-sub">Skuul-RMS is where your school configures grading, uploads assessments, generates report cards, and celebrates top performers — all from one dashboard, with a dedicated portal for every student.</p>
+      <div class="hero-ctas">
+        <a href="#getting-started" class="hero-btn hero-btn-primary"><i class="fas fa-rocket"></i> Get Started</a>
+        <a href="#dashboard" class="hero-btn hero-btn-ghost"><i class="fas fa-chart-line"></i> Explore the Dashboard</a>
+      </div>
+
+      <div class="hero-meta-row">
+        <div class="hero-meta-item"><span class="hero-meta-val">14</span><span class="hero-meta-label">Documented modules</span></div>
+        <div class="hero-meta-item"><span class="hero-meta-val">3</span><span class="hero-meta-label">Certificate designs</span></div>
+        <div class="hero-meta-item"><span class="hero-meta-val">5</span><span class="hero-meta-label">Achievement categories</span></div>
+        <div class="hero-meta-item"><span class="hero-meta-val">24/7</span><span class="hero-meta-label">Student portal access</span></div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════ OVERVIEW ═══════════════════════════════════ -->
+    <section class="doc-section reveal" id="overview">
+      <div class="sec-eyebrow">Start Here</div>
+      <h2 class="sec-title">What Skuul-RMS does</h2>
+      <p>Skuul-RMS is a results management platform built for schools that want one dependable place to handle assessment data — from the first continuous assessment score entered in a term to the certificate a top student downloads at the end of a session.</p>
+      <p>It's built around a simple idea: a school's academic record should be structured, searchable, and easy to hand to the people who need it — administrators generating report cards, teachers reviewing class performance, and students checking their own results — without anyone needing to touch a spreadsheet formula.</p>
+
+      <h3 class="sub-title">Who uses it</h3>
+      <div class="card-grid">
+        <div class="doc-card">
+          <i class="fas fa-user-tie"></i>
+          <h5>School Administrators</h5>
+          <p>Configure the school profile, manage sessions and classes, upload assessment scores, and generate report cards and certificates.</p>
+        </div>
+        <div class="doc-card">
+          <i class="fas fa-user-graduate"></i>
+          <h5>Students</h5>
+          <p>Look up their own results by school code and student ID, view detailed performance analytics, and download their own report cards.</p>
+        </div>
+        <div class="doc-card">
+          <i class="fas fa-building-columns"></i>
+          <h5>Every School, Every System</h5>
+          <p>Grading weights, class names, sessions, and certificate branding are all configurable — Skuul-RMS adapts to how your school already grades, not the other way around.</p>
+        </div>
+      </div>
+
+      <h3 class="sub-title">Core concepts</h3>
+      <p>A handful of terms recur throughout this documentation. Getting comfortable with them up front makes everything else click faster.</p>
+      <div class="doc-table-wrap">
+        <table class="doc-table">
+          <thead><tr><th>Term</th><th>What it means</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Session</strong></td><td>An academic year, e.g. <em>2025/2026</em>. Your school can have many sessions on record, but only one is active for new uploads at a time.</td></tr>
+            <tr><td><strong>Term</strong></td><td>A grading period inside a session — First Term, Second Term, and so on. Each session can hold as many terms as your school uses.</td></tr>
+            <tr><td><strong>Class</strong></td><td>A group of students, e.g. <em>Grade 9A</em>. Classes are configured once and then selected from a dropdown every time you upload results.</td></tr>
+            <tr><td><strong>School Code</strong></td><td>A short, unique code (like <code>GHS-2026</code>) that identifies your school. Students use it to find your school's portal before searching for their own results.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <div class="divider"></div>
+
+    <!-- ═══════════════════════════════════ GETTING STARTED ═══════════════════════════════════ -->
+    <section class="doc-section reveal" id="getting-started">
+      <div class="sec-eyebrow">Start Here</div>
+      <h2 class="sec-title">Getting started</h2>
+      <p>Setting up your school takes about ten minutes. Here's the full path from a blank account to your first uploaded result.</p>
+
+      <h3 class="sub-title">Creating your school account</h3>
+      <p>From the sign-in screen, switch to the <strong>Create Account</strong> tab and fill in:</p>
+      <ol class="doc-list">
+        <li><strong>School Name</strong> — your school's full name, exactly as you want it to appear on report cards and certificates.</li>
+        <li><strong>School Code</strong> — auto-suggested from your school name, but you can set your own. This is what students will enter to reach your portal, so keep it short and easy to share (e.g. <code>GHS-2026</code>).</li>
+        <li><strong>Admin Username</strong> — the name you'll sign in with.</li>
+        <li><strong>Email Address</strong> — required for every account. Used to verify your identity at sign-in.</li>
+        <li><strong>Password</strong> — at least 6 characters. You'll confirm it once more before the account is created.</li>
+      </ol>
+
+      <div class="callout callout-note">
+        <i class="fas fa-circle-info"></i>
+        <div><span class="callout-title">Username, email, and password — all three, every time</span>
+        <p>Signing in asks for your School Code, Username, Email, and Password together. This four-part check keeps each school's dashboard tied specifically to the people who should have access to it.</p></div>
+      </div>
+
+      <h3 class="sub-title">Signing in</h3>
+      <p>Return to the <strong>Login</strong> tab and enter your School Code, Username, Email, and Password. Once verified, you're taken straight to your Dashboard.</p>
+
+      <h3 class="sub-title">Your first-time setup checklist</h3>
+      <p>Before uploading any results, walk through Configuration once. Everything here can be changed later, but getting it right at the start saves re-work.</p>
+      <div class="card-grid">
+        <div class="doc-card"><i class="fas fa-school"></i><h5>1. School profile</h5><p>Name, type, address, phone, and logo.</p></div>
+        <div class="doc-card"><i class="fas fa-calendar-days"></i><h5>2. Sessions &amp; terms</h5><p>Create your academic session and its terms, then activate one.</p></div>
+        <div class="doc-card"><i class="fas fa-layer-group"></i><h5>3. Classes</h5><p>Add every class your school teaches, so they're ready in the upload dropdown.</p></div>
+        <div class="doc-card"><i class="fas fa-scale-balanced"></i><h5>4. Grading structure</h5><p>Set how much each assessment (1st test, 2nd test, exam) is worth.</p></div>
+        <div class="doc-card"><i class="fas fa-award"></i><h5>5. Certificate design</h5><p>Choose the look your achievement certificates will use.</p></div>
+        <div class="doc-card"><i class="fas fa-upload"></i><h5>6. Upload results</h5><p>You're ready — head to Upload Results and bring in your first CSV files.</p></div>
+      </div>
+    </section>
+
+    <div class="divider"></div>
+
+    <!-- ═══════════════════════════════════ DASHBOARD ═══════════════════════════════════ -->
+    <section class="doc-section reveal" id="dashboard">
+      <div class="sec-eyebrow">Admin Dashboard</div>
+      <h2 class="sec-title">Dashboard</h2>
+      <p>Your Dashboard is the first thing you see after signing in, and it's built to answer "how is this term going?" at a glance before you dig into any one class or student.</p>
+
+      <h3 class="sub-title">Overview cards</h3>
+      <p>Four cards summarize the active session and term: <strong>Total Students</strong>, <strong>Subjects</strong>, <strong>Reports Generated</strong>, and <strong>Upload Progress</strong> — the last of which fills in as you complete each stage of the upload process (first test, second test, exam).</p>
+      <p>Below them, a second row shows <strong>Students Passed</strong>, <strong>Students Failed</strong>, and the <strong>Class Average</strong> for whichever session and term is currently active.</p>
+
+      <h3 class="sub-title">Interactive charts</h3>
+      <ul class="doc-list">
+        <li><strong>Grade Distribution</strong> — a doughnut chart breaking down how many students landed in each grade band across all uploaded subjects.</li>
+        <li><strong>Top 4 Student Performance</strong> — a bar chart of your four highest-scoring students for the active term, colour-coded by how strong the result is.</li>
+      </ul>
+      <p>Both charts update immediately as new results are uploaded and compiled — there's no separate "refresh" step.</p>
+
+      <h3 class="sub-title">Achievements &amp; Top Performers</h3>
+      <p>A tabbed panel surfaces your school's best performances across five different lenses, each explained in full under <a href="#achievements">Achievements &amp; Certificates</a>:</p>
+      <div class="rank-row">
+        <span class="rank-badge rank-1"><span class="rank-circle">🏅</span>Best of Session</span>
+        <span class="rank-badge rank-2"><span class="rank-circle">📅</span>Best of Term</span>
+        <span class="rank-badge rank-3"><span class="rank-circle">🏫</span>Best of Class</span>
+        <span class="rank-badge rank-4"><span class="rank-circle">⭐</span>All-Time Best</span>
+      </div>
+      <p>A fifth tab, <strong>Subject Champions</strong>, shows the highest scorer in every subject your school has ever recorded results for.</p>
+
+      <h3 class="sub-title">Quick Actions &amp; Recent Activity</h3>
+      <p>Quick Actions link straight to Configuration, Upload Results, and report generation. Recent Activity keeps a running log of what's happened most recently — new uploads, configuration changes, generated reports — so you always know what the last person to touch the dashboard did.</p>
+    </section>
+
+    <div class="divider"></div>
+
+    <!-- ═══════════════════════════════════ CONFIGURATION ═══════════════════════════════════ -->
+    <section class="doc-section reveal" id="configuration">
+      <div class="sec-eyebrow">Admin Dashboard</div>
+      <h2 class="sec-title">Configuration</h2>
+      <p>Configuration is where your school's identity, grading rules, and document branding all live. Every setting here feeds directly into the report cards and certificates your school produces.</p>
+
+      <h3 class="sub-title">School profile</h3>
+      <p>Set your school name, type or level (this appears on the report card title row), address, and telephone number. Your <strong>school subheading</strong> — the line shown under your school name on report cards — is built from a set of selectable tags (Nursery, Primary, Secondary, College, and so on); pick as many as apply, or add your own custom label if none quite fit.</p>
+
+      <h3 class="sub-title">Next term dates</h3>
+      <p>Set the dates your next term begins and ends. These print automatically on every report card, so parents and students always know when to expect the school to reopen.</p>
+
+      <h3 class="sub-title">Sessions &amp; terms</h3>
+      <p>Add a new session (e.g. <code>2026/2027</code>), then add terms inside it. Only one session and one term can be <strong>active</strong> at any time — that's the combination new uploads are saved under, and the combination new students see by default in results.</p>
+      <div class="callout callout-tip">
+        <i class="fas fa-lightbulb"></i>
+        <div><span class="callout-title">Activating a new term doesn't erase the old one</span>
+        <p>Every session and term you've ever created stays on record. Switching the active term only changes where <em>new</em> uploads go — past results remain fully searchable and downloadable.</p></div>
+      </div>
+
+      <h3 class="sub-title">Classes</h3>
+      <p>Add every class your school runs — <code>Grade 9A</code>, <code>Grade 10B</code>, whatever naming your school already uses. Once added, classes appear as a dropdown when uploading results, so there's no risk of a typo creating two different classes that were meant to be the same one.</p>
+
+      <h3 class="sub-title">Certificate design</h3>
+      <p>Choose the visual style used for every achievement certificate your school generates. Your selection applies immediately to all future certificate downloads.</p>
+      <div class="cert-swatch-grid">
+        <div class="cert-swatch">
+          <div class="cert-swatch-preview classic"></div>
+          <div class="cert-swatch-body"><div class="cert-swatch-name">Classic Gold</div><p class="cert-swatch-desc">Ornate gold double border with a ribbon medallion seal — timeless and formal.</p></div>
+        </div>
+        <div class="cert-swatch">
+          <div class="cert-swatch-preview aurora"></div>
+          <div class="cert-swatch-body"><div class="cert-swatch-name">Aurora Gradient</div><p class="cert-swatch-desc">A vibrant teal-to-violet-to-pink gradient band — modern and colourful.</p></div>
+        </div>
+        <div class="cert-swatch">
+          <div class="cert-swatch-preview emerald"></div>
+          <div class="cert-swatch-body"><div class="cert-swatch-name">Emerald Frame</div><p class="cert-swatch-desc">A bold emerald-and-gold frame with a matching signature band along the bottom.</p></div>
+        </div>
+      </div>
+
+      <h3 class="sub-title">Branding: logo &amp; signatures</h3>
+      <p>Upload your school logo, principal's signature, and head teacher's signature once, and they'll appear automatically on every report card and certificate from then on. Images are optimised on upload, so there's no need to resize anything yourself beforehand.</p>
+
+      <h3 class="sub-title">Grading structure</h3>
+      <p>By default, scores are split 20 / 20 / 60 across the first test, second test, and exam. If your school weighs these differently — say, giving more weight to the final exam — you can set your own split, as long as the three numbers add up to exactly 100.</p>
+      <div class="code-block">
+        <div class="code-head"><span class="code-label">Example — exam-weighted structure</span></div>
+        <pre>1st Test:  10 marks
+2nd Test:  20 marks
+Exam:      70 marks
+─────────────────
+Total:    100 marks</pre>
+      </div>
+      <div class="callout callout-warn">
+        <i class="fas fa-triangle-exclamation"></i>
+        <div><span class="callout-title">Confirmed before it applies</span>
+        <p>Changing your grading structure shows a before-and-after summary that you must confirm. Already-uploaded scores keep the values they were recorded with — the new structure applies to new uploads going forward.</p></div>
+      </div>
+
+      <h3 class="sub-title">Saving changes</h3>
+      <p>Clicking <strong>Save Configuration</strong> opens a summary of every change you're about to make — school details, subheading, dates, certificate design, and any new logo or signature files — so nothing is applied until you've reviewed and confirmed it.</p>
+    </section>
+
+    <div class="divider"></div>
+
+    <!-- ═══════════════════════════════════ UPLOADING RESULTS ═══════════════════════════════════ -->
+    <section class="doc-section reveal" id="uploading">
+      <div class="sec-eyebrow">Admin Dashboard</div>
+      <h2 class="sec-title">Uploading results</h2>
+      <p>Results are brought in as CSV files — one file per subject, uploaded together in three passes across a term.</p>
+
+      <h3 class="sub-title">Preparing your files</h3>
+      <p>Each CSV needs four columns: <strong>StudentID</strong>, <strong>StudentName</strong>, <strong>Subject</strong>, and <strong>Score</strong>. If your file is named after the subject (e.g. <code>Mathematics.csv</code>), Skuul-RMS will pick that up automatically even if the Subject column is left blank.</p>
+      <div class="code-block">
+        <div class="code-head"><span class="code-label">Mathematics.csv</span><button class="copy-btn" onclick="Docs.copyBlock(this)"><i class="fas fa-copy"></i> Copy</button></div>
+        <pre>StudentID,StudentName,Subject,Score
+STD-1001,Amelia Chen,Mathematics,18
+STD-1002,Lucas Martin,Mathematics,16
+STD-1003,Fatima Hassan,Mathematics,19
+STD-1004,Noah Kim,Mathematics,14</pre>
+      </div>
+      <p>Not sure of the exact format? Download the sample CSV templates directly from the Upload Results page — they're pre-filled with example data matching this structure exactly.</p>
+
+      <h3 class="sub-title">The four-step process</h3>
+      <ol class="doc-list">
+        <li><strong>First Test</strong> — select the class from the dropdown, then upload every subject's CSV file for the first continuous assessment.</li>
+        <li><strong>Second Test</strong> — upload the same subjects' files for the second continuous assessment.</li>
+        <li><strong>Exam</strong> — upload the final exam scores for each subject.</li>
+        <li><strong>Generate</strong> — review the compiled results across all three uploads, then generate report cards for the whole class at once.</li>
+      </ol>
+
+      <h3 class="sub-title">Score validation</h3>
+      <p>Every score is automatically checked against your school's configured grading structure. A first-test score that exceeds its configured maximum is clamped down to that maximum, and you're shown a summary of exactly which rows were adjusted before the upload completes.</p>
+
+      <h3 class="sub-title">Handling class conflicts</h3>
+      <p>If a student ID already has results recorded under a <em>different</em> class for the session and term you're uploading into, Skuul-RMS pauses and shows you exactly which students are affected, with their existing class and the new upload's class side by side. You choose how to resolve it:</p>
+      <div class="card-grid">
+        <div class="doc-card"><i class="fas fa-forward"></i><h5>Skip Conflicts</h5><p>Keep existing records untouched; only add genuinely new students from this upload.</p></div>
+        <div class="doc-card"><i class="fas fa-rotate"></i><h5>Replace All</h5><p>Overwrite the conflicting records so they now belong to the new upload's class.</p></div>
+        <div class="doc-card"><i class="fas fa-xmark"></i><h5>Cancel Upload</h5><p>Stop and make no changes, so you can double-check the file before trying again.</p></div>
+      </div>
+    </section>
+
+    <div class="divider"></div>
+
+    <!-- ═══════════════════════════════════ REPORT CARDS ═══════════════════════════════════ -->
+    <section class="doc-section reveal" id="report-cards">
+      <div class="sec-eyebrow">Admin Dashboard</div>
+      <h2 class="sec-title">Report cards</h2>
+      <p>Every report card follows the same structure, whether it's viewed on screen, downloaded as a PDF, or downloaded as a Word document.</p>
+
+      <h3 class="sub-title">Anatomy of a report card</h3>
+      <div class="rc-diagram">
+        <div class="rc-diagram-grid">
+          <div class="rc-zone"><div class="rc-zone-num">1</div><div class="rc-zone-text"><h5>School header</h5><p>Logo, school name, subheading, and contact details.</p></div></div>
+          <div class="rc-zone"><div class="rc-zone-num">2</div><div class="rc-zone-text"><h5>Student information</h5><p>Name, class, class size, next term dates, average, and position.</p></div></div>
+          <div class="rc-zone"><div class="rc-zone-num">3</div><div class="rc-zone-text"><h5>Subject results table</h5><p>1st test, 2nd test, exam, total, grade, and teacher remark per subject.</p></div></div>
+          <div class="rc-zone"><div class="rc-zone-num">4</div><div class="rc-zone-text"><h5>Development assessment</h5><p>Affective traits and psychomotor skills, rated on a 0–5 scale.</p></div></div>
+          <div class="rc-zone"><div class="rc-zone-num">5</div><div class="rc-zone-text"><h5>Remarks &amp; signatures</h5><p>Teacher and principal remarks, with space for both signatures.</p></div></div>
+          <div class="rc-zone"><div class="rc-zone-num">6</div><div class="rc-zone-text"><h5>Promotion line</h5><p>Whether the student is promoted to the next class.</p></div></div>
+        </div>
+      </div>
+
+      <h3 class="sub-title">Grading scale</h3>
+      <div class="doc-table-wrap">
+        <table class="doc-table">
+          <thead><tr><th>Score</th><th>Grade</th><th>Remark</th></tr></thead>
+          <tbody>
+            <tr><td>70 and above</td><td><strong>A</strong></td><td>Excellent</td></tr>
+            <tr><td>60–69</td><td><strong>B</strong></td><td>Very Good</td></tr>
+            <tr><td>50–59</td><td><strong>C</strong></td><td>Good</td></tr>
+            <tr><td>45–49</td><td><strong>D</strong></td><td>Fair</td></tr>
+            <tr><td>Below 45</td><td><strong>F</strong></td><td>Poor</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3 class="sub-title">How positions are calculated</h3>
+      <p>Class position is ranked by total aggregate score, using <strong>dense ranking</strong>: students who tie share the same position, and the next distinct score takes the very next position — no position is ever skipped.</p>
+      <div class="code-block">
+        <pre>Scores:     95   95   90   85   85   80
+Positions:  1st  1st  2nd  3rd  3rd  4th</pre>
+      </div>
+      <p>Two students tied for 1st simply means there's no 2nd place taken — the next student is correctly 2nd, not 3rd.</p>
+
+      <h3 class="sub-title">Downloading</h3>
+      <p>From the report card preview, download as a <strong>PDF</strong> for printing or sharing, or as a <strong>Word document</strong> if the school needs to make further edits — both reflect exactly what's shown in the preview, at full quality, regardless of the device you're downloading from.</p>
+    </section>
+
+    <div class="divider"></div>
+
+    <!-- ═══════════════════════════════════ MANAGING REPORTS ═══════════════════════════════════ -->
+    <section class="doc-section reveal" id="managing">
+      <div class="sec-eyebrow">Admin Dashboard</div>
+      <h2 class="sec-title">Managing reports</h2>
+      <p>Every student record ever generated lives in Manage Reports, filterable by session, term, and class.</p>
+      <ul class="doc-list">
+        <li><strong>Filter</strong> — narrow the list down to a specific session, term, or class before searching further by name.</li>
+        <li><strong>View &amp; download</strong> — open any student's report card directly from the table, in PDF or Word.</li>
+        <li><strong>Delete</strong> — remove an individual student's record for a given session and term, with a confirmation step first.</li>
+      </ul>
+      <p>The table itself scrolls independently within a fixed-height panel, so a long list of records never pushes the rest of the page out of view.</p>
+    </section>
+
+    <div class="divider"></div>
+
+    <!-- ═══════════════════════════════════ ACHIEVEMENTS & CERTIFICATES ═══════════════════════════════════ -->
+    <section class="doc-section reveal" id="achievements">
+      <div class="sec-eyebrow">Admin Dashboard</div>
+      <h2 class="sec-title">Achievements &amp; certificates</h2>
+      <p>Beyond individual report cards, Skuul-RMS surfaces the standout performances across your whole school and lets you turn any of them into a downloadable certificate in a couple of clicks.</p>
+
+      <h3 class="sub-title">The five achievement categories</h3>
+      <div class="card-grid">
+        <div class="doc-card"><i class="fas fa-medal"></i><h5>Best of Session</h5><p>Top 4 students across all classes and terms within one academic session, ranked by average performance.</p></div>
+        <div class="doc-card"><i class="fas fa-calendar-check"></i><h5>Best of Term</h5><p>Top 4 students across all classes for one specific term.</p></div>
+        <div class="doc-card"><i class="fas fa-people-group"></i><h5>Best of Class</h5><p>Top 4 students of one specific class, within one session.</p></div>
+        <div class="doc-card"><i class="fas fa-star"></i><h5>All-Time Best</h5><p>Top 4 students across every session and term your school has ever recorded.</p></div>
+        <div class="doc-card"><i class="fas fa-book"></i><h5>Subject Champions</h5><p>The highest all-time scorer in every individual subject your school teaches.</p></div>
+      </div>
+      <p>Every category uses the same dense ranking as report card positions — if two students are tied for a spot, both are recognised, and the list simply includes everyone who's genuinely in the top four positions.</p>
+
+      <h3 class="sub-title">Downloading certificates</h3>
+      <p>Each name in an achievement list has two buttons: <strong>Report</strong>, which opens that student's report card for the relevant term, and <strong>Certificate</strong>, which generates a certificate using your school's chosen design, complete with your logo, signatures, and the specific achievement being recognised.</p>
+      <div class="callout callout-tip">
+        <i class="fas fa-lightbulb"></i>
+        <div><span class="callout-title">Certificates always match what you preview</span>
+        <p>Whether you're downloading from a laptop or a phone, the certificate PDF is generated at full design resolution every time — what you see in the preview is exactly what gets saved.</p></div>
+      </div>
+    </section>
+
+    <div class="divider"></div>
+
+    <!-- ═══════════════════════════════════ STUDENT PORTAL ═══════════════════════════════════ -->
+    <section class="doc-section reveal" id="student-portal">
+      <div class="sec-eyebrow">Students</div>
+      <h2 class="sec-title">Student portal</h2>
+      <p>Students don't need an account to check their results — just their school's code and their own student ID.</p>
+
+      <h3 class="sub-title">Finding your school</h3>
+      <p>From the portal's entry screen, a student enters their School Code (available from their teacher or school notice board) to reach their school's dedicated results search page.</p>
+
+      <h3 class="sub-title">Searching for results</h3>
+      <p>Students can narrow their search by session and term, then look themselves up by student ID or name. Leaving the session and term filters on their default setting searches across every record on file for that student.</p>
+
+      <h3 class="sub-title">Understanding the results page</h3>
+      <p>Once a result is found, students see a complete performance breakdown:</p>
+      <ul class="doc-list">
+        <li><strong>Key stats</strong> — aggregate score, average percentage, class position, and pass rate.</li>
+        <li><strong>Highlights</strong> — strongest subjects, subjects needing improvement, a pass/fail summary, and a consistency reading.</li>
+        <li><strong>Four charts</strong> — a subject score comparison, grade distribution, an assessment breakdown (1st test / 2nd test / exam), and a performance radar across subjects.</li>
+        <li><strong>Term-by-term progress</strong> — a simple bar comparison of average performance across every term on record, so improvement (or decline) is visible at a glance.</li>
+        <li><strong>Improvement recommendations</strong> — plain-language suggestions generated from the student's own results.</li>
+      </ul>
+
+      <h3 class="sub-title">Your achievements</h3>
+      <p>If a student qualifies for any of the five achievement categories, a dedicated section appears right on their results page, with the same Report and Certificate download buttons available to administrators — students can download their own certificates the moment they discover they've earned one.</p>
+    </section>
+
+    <div class="divider"></div>
+
+    <!-- ═══════════════════════════════════ SECURITY ═══════════════════════════════════ -->
+    <section class="doc-section reveal" id="security">
+      <div class="sec-eyebrow">Account</div>
+      <h2 class="sec-title">Security</h2>
+      <p>Every school's data is fully isolated from every other school's — nothing you upload, configure, or generate is ever visible outside your own account.</p>
+
+      <h3 class="sub-title">Updating your credentials</h3>
+      <p>From the Security page, update your username, email, or password. Any change requires your current password first, and a new password must be at least 6 characters.</p>
+
+      <h3 class="sub-title">Danger Zone</h3>
+      <p>If you ever need to start completely fresh, Danger Zone permanently wipes every uploaded result, generated report, and configuration setting — while keeping your login account intact so you don't need to register again.</p>
+      <div class="callout callout-danger">
+        <i class="fas fa-triangle-exclamation"></i>
+        <div><span class="callout-title">This cannot be undone</span>
+        <p>To prevent accidental data loss, you must type the exact confirmation phrase shown on screen before the reset button becomes active. There's no way to recover data once it's cleared.</p></div>
+      </div>
+    </section>
+
+    <div class="divider"></div>
+
+    <!-- ═══════════════════════════════════ ACTIVITY LOG ═══════════════════════════════════ -->
+    <section class="doc-section reveal" id="activity-log">
+      <div class="sec-eyebrow">Account</div>
+      <h2 class="sec-title">Activity log</h2>
+      <p>Every meaningful action — uploads, configuration changes, generated reports, credential updates — is timestamped and recorded in your Activity Log, giving you a running history of everything that's happened on your account. The log itself scrolls within a fixed-height panel and can be cleared at any time.</p>
+    </section>
+
+    <div class="divider"></div>
+
+    <!-- ═══════════════════════════════════ APPEARANCE ═══════════════════════════════════ -->
+    <section class="doc-section reveal" id="appearance">
+      <div class="sec-eyebrow">Account</div>
+      <h2 class="sec-title">Appearance</h2>
+      <p>A dark mode toggle sits in the sidebar of your dashboard. Switching it applies instantly across every page — dashboard, configuration, upload, reports — and your preference is remembered the next time you sign in. Report cards and certificates always render on a light background regardless of your theme choice, since they're built to be printed and read on paper.</p>
+    </section>
+
+    <div class="divider"></div>
+
+    <!-- ═══════════════════════════════════ FAQ ═══════════════════════════════════ -->
+    <section class="doc-section reveal" id="faq">
+      <div class="sec-eyebrow">Reference</div>
+      <h2 class="sec-title">Frequently asked questions</h2>
+
+      <div class="faq-item">
+        <div class="faq-q" onclick="Docs.toggleFaq(this)">Can I use my own grading scale?<i class="fas fa-chevron-down"></i></div>
+        <div class="faq-a"><div class="faq-a-inner">Yes. The weight given to each assessment (1st test, 2nd test, exam) is fully configurable, as long as the three values add up to 100. The letter-grade bands (A/B/C/D/F) are the standard scale used to interpret the resulting total.</div></div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q" onclick="Docs.toggleFaq(this)">What happens when two students score exactly the same?<i class="fas fa-chevron-down"></i></div>
+        <div class="faq-a"><div class="faq-a-inner">They share the same position, and the next distinct score takes the very next position — no gaps are left behind a tie. This applies to class positions, achievement rankings, and certificates alike.</div></div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q" onclick="Docs.toggleFaq(this)">Can students see each other's results?<i class="fas fa-chevron-down"></i></div>
+        <div class="faq-a"><div class="faq-a-inner">No. A student can only retrieve results by entering the exact student ID (or matching name) they're searching for — there's no listing or browsing of other students' records.</div></div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q" onclick="Docs.toggleFaq(this)">Can I change the grading structure partway through a term?<i class="fas fa-chevron-down"></i></div>
+        <div class="faq-a"><div class="faq-a-inner">Yes, though it's worth timing carefully — already-uploaded scores keep the values they were recorded with, while any assessment you upload after the change follows the new structure.</div></div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q" onclick="Docs.toggleFaq(this)">What formats can I download report cards and certificates in?<i class="fas fa-chevron-down"></i></div>
+        <div class="faq-a"><div class="faq-a-inner">Report cards download as PDF or Word. Certificates download as PDF. Both are generated at full design resolution regardless of the device you're using.</div></div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q" onclick="Docs.toggleFaq(this)">Is my school's data kept separate from other schools using Skuul-RMS?<i class="fas fa-chevron-down"></i></div>
+        <div class="faq-a"><div class="faq-a-inner">Yes, completely. Every school's configuration, results, and reports are isolated to that school's own account and are never visible to any other school on the platform.</div></div>
+      </div>
+    </section>
+
+    <!-- ═══════ FOOTER ═══════ -->
+    <div class="doc-footer">
+      <p>© Skuul-RMS — built and maintained by CodeVerse.</p>
+      <div class="footer-links">
+        <a href="#overview">Overview</a>
+        <a href="#getting-started">Getting Started</a>
+        <a href="#faq">FAQ</a>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<button id="backToTop" onclick="Docs.toTop()"><i class="fas fa-arrow-up"></i></button>
+
+<script>
+const Docs = {
+  init(){
+    this.buildSectionIndex();
+    this.setupScrollspy();
+    this.setupReveal();
+    window.addEventListener('scroll', () => { this.updateProgress(); this.updateBackToTop(); }, { passive:true });
+    document.addEventListener('keydown', (e) => {
+      if(e.key === '/' && document.activeElement.id !== 'docSearch'){ e.preventDefault(); document.getElementById('docSearch').focus(); }
+      if(e.key === 'Escape'){ document.getElementById('docSearch').blur(); document.getElementById('docSearch').value=''; this.search(); }
+    });
+  },
+
+  buildSectionIndex(){
+    this.links = [...document.querySelectorAll('.sb-link')];
+    this.sections = this.links.map(l => document.getElementById(l.dataset.target)).filter(Boolean);
+  },
+
+  updateProgress(){
+    const h = document.documentElement;
+    const scrolled = h.scrollTop;
+    const height = h.scrollHeight - h.clientHeight;
+    document.getElementById('readProgress').style.width = (height>0 ? (scrolled/height*100) : 0) + '%';
+  },
+
+  updateBackToTop(){
+    const btn = document.getElementById('backToTop');
+    btn.classList.toggle('show', window.scrollY > 500);
+  },
+
+  toTop(){ window.scrollTo({top:0, behavior:'smooth'}); },
+
+  setupScrollspy(){
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if(entry.isIntersecting){
+          const id = entry.target.id;
+          this.links.forEach(l => l.classList.toggle('active', l.dataset.target === id));
+        }
+      });
+    }, { rootMargin: '-15% 0px -70% 0px', threshold: 0 });
+    this.sections.forEach(s => observer.observe(s));
+
+    this.links.forEach(l => {
+      l.addEventListener('click', () => {
+        const target = document.getElementById(l.dataset.target);
+        if(target) target.scrollIntoView({behavior:'smooth', block:'start'});
+        this.closeSidebar();
+      });
+    });
+  },
+
+  setupReveal(){
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => { if(entry.isIntersecting) entry.target.classList.add('in'); });
+    }, { threshold: 0.08 });
+    document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+  },
+
+  search(){
+    const q = document.getElementById('docSearch').value.trim().toLowerCase();
+    this.links.forEach(l => {
+      const hay = (l.textContent + ' ' + (l.dataset.kw||'')).toLowerCase();
+      l.classList.toggle('sb-hidden', q.length > 0 && !hay.includes(q));
+    });
+  },
+
+  copyBlock(btn){
+    const pre = btn.closest('.code-block').querySelector('pre');
+    navigator.clipboard.writeText(pre.textContent).then(() => {
+      const original = btn.innerHTML;
+      btn.innerHTML = '<i class="fas fa-check"></i> Copied';
+      setTimeout(() => { btn.innerHTML = original; }, 1600);
+    });
+  },
+
+  toggleFaq(el){
+    el.parentElement.classList.toggle('open');
+  },
+
+  toggleSidebar(){
+    document.getElementById('sidebar').classList.toggle('open');
+    document.getElementById('sidebarOverlay').classList.toggle('show');
+  },
+  closeSidebar(){
+    if(window.innerWidth <= 960){
+      document.getElementById('sidebar').classList.remove('open');
+      document.getElementById('sidebarOverlay').classList.remove('show');
+    }
+  }
+};
+
+document.addEventListener('DOMContentLoaded', () => Docs.init());
+</script>
+
+</body>
+</html>
