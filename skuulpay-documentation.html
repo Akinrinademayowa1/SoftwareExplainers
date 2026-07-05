@@ -1,0 +1,1039 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SkuulPay Documentation — Fee Payment &amp; Financial Management</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+/* ============================================================
+   TOKENS — palette matches SkuulPay's own dark theme (bg/surface/
+   border/text lifted directly from the product); accent hues kept
+   the same family (blue/green/amber/red) but brightened slightly
+   for sustained-reading contrast against the near-black background.
+   ============================================================ */
+:root{
+  --bg:#0d1117; --bg-soft:#0a0d13;
+  --surface:#161b22; --surface-2:#1b212b; --surface-3:#212934;
+  --border:#262d3a; --border-soft:#1b212b;
+  --text:#eef2f7; --text-2:#c7cedb; --text-3:#8b94a7; --text-4:#7e8895;
+  --primary:#4c7dfb; --primary-deep:#1a56db; --primary-dim:#152447; --primary-glow:rgba(76,125,251,.35);
+  --success:#1fc98d; --success-dim:#0e2b25;
+  --warning:#f0b44c; --warning-dim:#33270b;
+  --danger:#f2596d; --danger-dim:#341620;
+  --info:#4c9bfb; --info-dim:#122036;
+  --r:10px; --r-lg:16px; --r-xl:22px;
+  --font-display:'Space Grotesk',sans-serif;
+  --font-body:'Inter',sans-serif;
+  --font-mono:'JetBrains Mono',monospace;
+  --sidebar-w:280px;
+  --shadow-lg:0 20px 60px rgba(0,0,0,.45);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
+  *,*::before,*::after{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important;scroll-behavior:auto!important}
+}
+body{
+  font-family:var(--font-body);
+  background:var(--bg);
+  color:var(--text-2);
+  line-height:1.65;
+  font-size:15.5px;
+  -webkit-font-smoothing:antialiased;
+}
+::selection{background:var(--primary-dim);color:var(--text)}
+::-webkit-scrollbar{width:9px;height:9px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--surface-3);border-radius:6px}
+::-webkit-scrollbar-thumb:hover{background:var(--border)}
+a{color:var(--primary);text-decoration:none}
+h1,h2,h3,h4{font-family:var(--font-display);color:var(--text);font-weight:600;letter-spacing:-.01em}
+code,.mono{font-family:var(--font-mono)}
+:focus-visible{outline:2px solid var(--primary);outline-offset:2px;border-radius:4px}
+img{max-width:100%}
+
+/* ============================================================
+   SHELL
+   ============================================================ */
+.docs-shell{display:flex;min-height:100vh}
+
+/* ---------- SIDEBAR (mirrors the real SkuulPay admin sidebar: same
+   grouping labels & icons as Router._adminNav / _studentNav) ---------- */
+.docs-sidebar{
+  width:var(--sidebar-w); flex-shrink:0;
+  background:var(--bg-soft);
+  border-right:1px solid var(--border-soft);
+  position:sticky; top:0; height:100vh; overflow-y:auto;
+  display:flex; flex-direction:column;
+  z-index:40;
+}
+.sidebar-brand{
+  display:flex; align-items:center; gap:10px;
+  padding:22px 20px 16px;
+}
+.sidebar-brand .mark{
+  width:34px;height:34px;border-radius:9px;
+  background:linear-gradient(135deg,var(--primary) 0%,var(--primary-deep) 100%);
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--font-display);font-weight:700;color:#fff;font-size:15px;
+  box-shadow:0 4px 14px var(--primary-glow);
+  flex-shrink:0;
+}
+.sidebar-brand .name{font-family:var(--font-display);font-weight:700;font-size:17px;color:var(--text)}
+.sidebar-brand .tag{font-size:10.5px;color:var(--text-4);letter-spacing:.06em;text-transform:uppercase;margin-top:1px}
+
+.sidebar-search{padding:0 16px 14px}
+.sidebar-search .box{
+  display:flex;align-items:center;gap:8px;
+  background:var(--surface);border:1px solid var(--border);border-radius:var(--r);
+  padding:8px 11px;
+}
+.sidebar-search input{
+  background:none;border:none;color:var(--text-2);font-size:13px;width:100%;font-family:var(--font-body);
+}
+.sidebar-search input::placeholder{color:var(--text-4)}
+.sidebar-search input:focus{outline:none}
+.sidebar-search i{color:var(--text-4);font-size:12px}
+.sidebar-search kbd{
+  font-family:var(--font-mono);font-size:10px;color:var(--text-4);
+  border:1px solid var(--border);border-radius:4px;padding:1px 5px;
+}
+
+.sidebar-nav{flex:1;padding:4px 12px 20px}
+.nav-group{margin-bottom:4px}
+.nav-group-label{
+  font-size:10.5px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;
+  color:var(--text-4); padding:14px 10px 6px;
+}
+.nav-link{
+  display:flex;align-items:center;gap:10px;
+  padding:8px 10px;border-radius:8px;
+  font-size:13.5px;color:var(--text-3);font-weight:500;
+  transition:background .12s,color .12s;
+  position:relative;
+}
+.nav-link i{width:15px;text-align:center;font-size:12.5px;flex-shrink:0}
+.nav-link:hover{background:var(--surface);color:var(--text-2)}
+.nav-link.active{background:var(--primary-dim);color:#dce6ff}
+.nav-link.active i{color:var(--primary)}
+.nav-link.hidden{display:none}
+.nav-group.all-hidden{display:none}
+
+.sidebar-footer{
+  padding:16px 20px; border-top:1px solid var(--border-soft);
+  font-size:11.5px; color:var(--text-4);
+}
+.sidebar-footer strong{color:var(--text-3)}
+
+/* Mobile nav toggle */
+.mobile-nav-toggle{
+  display:none; position:fixed; top:16px; left:16px; z-index:60;
+  width:42px;height:42px;border-radius:10px;
+  background:var(--surface);border:1px solid var(--border);color:var(--text);
+  align-items:center;justify-content:center;font-size:16px;
+}
+.mobile-backdrop{display:none}
+
+/* ---------- MAIN CONTENT ---------- */
+.docs-main{flex:1; min-width:0}
+.doc-section{
+  max-width:860px; margin:0 auto;
+  padding:64px 48px;
+  border-bottom:1px solid var(--border-soft);
+  scroll-margin-top:24px;
+}
+.doc-section:last-of-type{border-bottom:none}
+.section-eyebrow{
+  display:inline-flex;align-items:center;gap:7px;
+  font-family:var(--font-mono); font-size:11px; font-weight:500;
+  color:var(--primary); letter-spacing:.06em; text-transform:uppercase;
+  margin-bottom:14px;
+}
+.section-eyebrow::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--primary);box-shadow:0 0 8px var(--primary-glow)}
+.doc-section h2{font-size:30px; margin-bottom:14px}
+.doc-section > p.lede{font-size:16.5px; color:var(--text-2); max-width:640px; margin-bottom:32px}
+.doc-section h3{font-size:19px; margin:34px 0 12px; color:var(--text)}
+.doc-section h3:first-of-type{margin-top:0}
+.doc-section p{margin-bottom:14px; color:var(--text-3)}
+.doc-section p strong{color:var(--text-2); font-weight:600}
+.doc-section ul,.doc-section ol{margin:0 0 16px 20px; color:var(--text-3)}
+.doc-section li{margin-bottom:7px; padding-left:4px}
+.doc-section li strong{color:var(--text-2)}
+
+/* path / field tags — reference-doc style pointer to exact UI labels */
+.path{
+  font-family:var(--font-mono); font-size:12.5px;
+  background:var(--surface-2); border:1px solid var(--border);
+  color:var(--text-2); padding:2px 8px; border-radius:6px; white-space:nowrap;
+}
+.path .sep{color:var(--text-4); margin:0 2px}
+
+/* ---------- Section divider between Admin / Parent portal blocks ---------- */
+.portal-divider{
+  max-width:860px; margin:0 auto; padding:40px 48px 0;
+  display:flex; align-items:center; gap:16px;
+}
+.portal-divider .line{flex:1; height:1px; background:var(--border)}
+.portal-divider .label{
+  font-family:var(--font-display); font-weight:700; font-size:13px;
+  letter-spacing:.1em; text-transform:uppercase; color:var(--text-3);
+  display:flex; align-items:center; gap:9px;
+}
+.portal-divider .label i{color:var(--primary)}
+
+/* ============================================================
+   HERO
+   ============================================================ */
+.hero{
+  max-width:100%; padding:76px 48px 56px;
+  background:
+    radial-gradient(ellipse 800px 400px at 15% -10%, rgba(76,125,251,.16), transparent 60%),
+    linear-gradient(180deg,var(--bg-soft) 0%, var(--bg) 100%);
+  border-bottom:1px solid var(--border-soft);
+}
+.hero-inner{max-width:860px;margin:0 auto}
+.hero .section-eyebrow{margin-bottom:18px}
+.hero h1{
+  font-size:46px; line-height:1.1; letter-spacing:-.02em;
+  margin-bottom:20px; max-width:680px;
+}
+.hero h1 .accent{color:var(--primary)}
+.hero p.lede{font-size:17.5px; color:var(--text-2); max-width:600px; margin-bottom:32px}
+.hero-ctas{display:flex; gap:12px; flex-wrap:wrap; margin-bottom:52px}
+.btn{
+  display:inline-flex; align-items:center; gap:8px;
+  font-family:var(--font-body); font-weight:600; font-size:13.5px;
+  padding:11px 18px; border-radius:9px; border:1px solid transparent;
+  cursor:pointer; transition:transform .12s, box-shadow .12s, background .12s;
+}
+.btn:hover{transform:translateY(-1px)}
+.btn-primary{background:var(--primary); color:#fff; box-shadow:0 6px 20px var(--primary-glow)}
+.btn-primary:hover{background:#5b8afd}
+.btn-ghost{background:var(--surface); color:var(--text-2); border-color:var(--border)}
+.btn-ghost:hover{border-color:var(--border)}
+
+/* Live dashboard mockup — screen-accurate to the real Admin Dashboard stat cards */
+.dash-mock{
+  background:var(--surface); border:1px solid var(--border); border-radius:var(--r-xl);
+  padding:22px; box-shadow:var(--shadow-lg);
+}
+.dash-mock-head{display:flex; align-items:center; justify-content:space-between; margin-bottom:18px}
+.dash-mock-head .win-dots{display:flex; gap:6px}
+.dash-mock-head .win-dots span{width:9px;height:9px;border-radius:50%;background:var(--surface-3)}
+.dash-mock-head .label{font-family:var(--font-mono); font-size:11px; color:var(--text-4)}
+.dash-grid{display:grid; grid-template-columns:repeat(4,1fr); gap:14px}
+.dash-stat{
+  background:var(--surface-2); border:1px solid var(--border-soft); border-radius:var(--r);
+  padding:16px;
+}
+.dash-stat .icn{
+  width:32px;height:32px;border-radius:8px; display:flex;align-items:center;justify-content:center;
+  font-size:13px; margin-bottom:12px;
+}
+.dash-stat.c-blue .icn{background:var(--info-dim); color:var(--info)}
+.dash-stat.c-green .icn{background:var(--success-dim); color:var(--success)}
+.dash-stat.c-red .icn{background:var(--danger-dim); color:var(--danger)}
+.dash-stat.c-amber .icn{background:var(--warning-dim); color:var(--warning)}
+.dash-stat .val{font-family:var(--font-display); font-size:21px; font-weight:700; color:var(--text)}
+.dash-stat .lbl{font-size:11px; color:var(--text-4); margin-top:3px}
+
+/* ============================================================
+   CALLOUTS — "ledger note" styling: colored left rail + perforated
+   top edge, monospace tag. Ties directly to the receipts/ledger subject.
+   ============================================================ */
+.note{
+  position:relative; margin:22px 0 26px;
+  background:var(--surface); border:1px solid var(--border); border-left:3px solid var(--info);
+  border-radius:0 var(--r) var(--r) 0;
+  padding:16px 18px 16px 20px;
+  background-image:radial-gradient(circle,var(--bg) 2.5px, transparent 2.5px);
+  background-size:10px 3px; background-repeat:repeat-x; background-position:14px top;
+}
+.note::before{content:'';position:absolute;top:0;left:-3px;right:0;height:3px;background:var(--bg)}
+.note-tag{
+  font-family:var(--font-mono); font-size:10.5px; font-weight:600; letter-spacing:.08em;
+  text-transform:uppercase; color:var(--info); display:block; margin-bottom:6px;
+}
+.note p{color:var(--text-2); margin-bottom:0; font-size:14px}
+.note.tip{border-left-color:var(--success)}
+.note.tip .note-tag{color:var(--success)}
+.note.warn{border-left-color:var(--warning)}
+.note.warn .note-tag{color:var(--warning)}
+
+/* ============================================================
+   FEATURE CARDS / MOCKUPS used inline within sections
+   ============================================================ */
+.mock-card{
+  background:var(--surface); border:1px solid var(--border); border-radius:var(--r-lg);
+  padding:20px; margin:22px 0;
+}
+.mock-card-title{
+  display:flex; align-items:center; gap:8px;
+  font-family:var(--font-mono); font-size:11px; color:var(--text-4);
+  text-transform:uppercase; letter-spacing:.06em; margin-bottom:16px;
+  padding-bottom:12px; border-bottom:1px dashed var(--border);
+}
+.mock-row{
+  display:flex; align-items:center; justify-content:space-between;
+  padding:11px 0; border-bottom:1px solid var(--border-soft); font-size:13.5px;
+}
+.mock-row:last-child{border-bottom:none}
+.mock-row .who{color:var(--text-2); font-weight:500}
+.mock-row .meta{color:var(--text-4); font-size:11.5px; margin-top:2px}
+.mock-row .amt{font-family:var(--font-mono); font-weight:600; color:var(--text)}
+.mock-row .amt.pos{color:var(--success)}
+.mock-row .amt.neg{color:var(--danger)}
+.badge{
+  font-size:10.5px; font-weight:600; padding:2px 8px; border-radius:99px;
+  font-family:var(--font-body);
+}
+.badge-success{background:var(--success-dim); color:var(--success)}
+.badge-warning{background:var(--warning-dim); color:var(--warning)}
+.badge-danger{background:var(--danger-dim); color:var(--danger)}
+.badge-info{background:var(--info-dim); color:var(--info)}
+
+/* Ledger tape — illustrates oldest-debt-first payment allocation */
+.ledger-tape{
+  background:var(--surface); border:1px solid var(--border); border-radius:var(--r-lg);
+  padding:4px; margin:24px 0;
+}
+.tape-entry{
+  display:grid; grid-template-columns:1fr auto auto; gap:14px; align-items:center;
+  padding:13px 16px; border-radius:8px;
+}
+.tape-entry + .tape-entry{border-top:1px dashed var(--border)}
+.tape-entry .desc{font-size:13px; color:var(--text-2)}
+.tape-entry .desc .term-tag{font-family:var(--font-mono); font-size:10.5px; color:var(--text-4); display:block; margin-top:2px}
+.tape-entry .amt{font-family:var(--font-mono); font-size:13.5px; font-weight:600; text-align:right}
+.tape-entry .bal{font-family:var(--font-mono); font-size:11.5px; color:var(--text-4); text-align:right; min-width:74px}
+
+/* Two/three column feature grids */
+.grid-2{display:grid; grid-template-columns:1fr 1fr; gap:16px; margin:20px 0}
+.grid-3{display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin:20px 0}
+.feat-card{
+  background:var(--surface); border:1px solid var(--border); border-radius:var(--r);
+  padding:18px;
+}
+.feat-card i{color:var(--primary); font-size:16px; margin-bottom:10px; display:block}
+.feat-card h4{font-family:var(--font-display); font-size:14.5px; color:var(--text); margin-bottom:6px}
+.feat-card p{font-size:13px; color:var(--text-3); margin-bottom:0}
+
+/* Steps list — numbered, used ONLY where order genuinely matters (setup flows) */
+.steps{list-style:none; margin:20px 0; counter-reset:step}
+.steps li{
+  counter-increment:step; position:relative;
+  padding:0 0 22px 40px; margin-bottom:0;
+}
+.steps li::before{
+  content:counter(step); position:absolute; left:0; top:0;
+  width:26px; height:26px; border-radius:50%;
+  background:var(--primary-dim); color:var(--primary);
+  font-family:var(--font-mono); font-size:12px; font-weight:600;
+  display:flex; align-items:center; justify-content:center;
+}
+.steps li::after{
+  content:''; position:absolute; left:13px; top:26px; bottom:0; width:1px;
+  background:var(--border);
+}
+.steps li:last-child::after{display:none}
+.steps li strong{color:var(--text-2); display:block; margin-bottom:3px; font-size:14.5px}
+
+/* FAQ accordion */
+.faq-item{border-bottom:1px solid var(--border-soft)}
+.faq-item:first-child{border-top:1px solid var(--border-soft)}
+.faq-q{
+  display:flex; align-items:center; justify-content:space-between; gap:16px;
+  padding:18px 4px; cursor:pointer; font-weight:600; color:var(--text); font-size:14.5px;
+  font-family:var(--font-body);
+}
+.faq-q i{color:var(--text-4); transition:transform .18s; flex-shrink:0; font-size:13px}
+.faq-item.open .faq-q i{transform:rotate(45deg); color:var(--primary)}
+.faq-a{max-height:0; overflow:hidden; transition:max-height .22s ease}
+.faq-item.open .faq-a{max-height:240px}
+.faq-a p{padding:0 4px 18px; color:var(--text-3); font-size:14px}
+
+/* keyboard-style tags */
+kbd.k{
+  font-family:var(--font-mono); font-size:11px; background:var(--surface-2);
+  border:1px solid var(--border); border-bottom-width:2px; border-radius:5px;
+  padding:2px 6px; color:var(--text-2);
+}
+
+/* Footer */
+.docs-footer{
+  max-width:860px; margin:0 auto; padding:48px 48px 80px;
+  display:flex; justify-content:space-between; align-items:flex-end; flex-wrap:wrap; gap:20px;
+}
+.docs-footer .brand-mini{display:flex; align-items:center; gap:10px}
+.docs-footer .brand-mini .mark{width:26px;height:26px;border-radius:7px;background:linear-gradient(135deg,var(--primary),var(--primary-deep));display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-weight:700;color:#fff;font-size:11px}
+.docs-footer .copy{font-size:12.5px; color:var(--text-4)}
+.docs-footer .links{display:flex; gap:18px}
+.docs-footer .links a{font-size:12.5px; color:var(--text-3)}
+.docs-footer .links a:hover{color:var(--text)}
+
+/* Table styling for reference tables */
+.ref-table{width:100%; border-collapse:collapse; margin:18px 0 26px; font-size:13.5px}
+.ref-table th{
+  text-align:left; font-family:var(--font-mono); font-size:10.5px; text-transform:uppercase;
+  letter-spacing:.05em; color:var(--text-4); font-weight:500; padding:0 12px 10px; border-bottom:1px solid var(--border);
+}
+.ref-table td{padding:12px; border-bottom:1px solid var(--border-soft); color:var(--text-2); vertical-align:top}
+.ref-table tr:last-child td{border-bottom:none}
+.ref-table td:first-child{color:var(--text); font-weight:600; white-space:nowrap}
+
+/* Responsive */
+@media (max-width:980px){
+  .grid-2,.grid-3{grid-template-columns:1fr}
+  .dash-grid{grid-template-columns:repeat(2,1fr)}
+}
+@media (max-width:768px){
+  .mobile-nav-toggle{display:flex}
+  .docs-sidebar{
+    position:fixed; left:0; top:0; height:100vh; z-index:70;
+    transform:translateX(-100%); transition:transform .22s ease;
+    box-shadow:var(--shadow-lg);
+  }
+  .docs-sidebar.open{transform:translateX(0)}
+  .mobile-backdrop{
+    display:none; position:fixed; inset:0; background:rgba(0,0,0,.55); z-index:50;
+  }
+  .mobile-backdrop.show{display:block}
+  .doc-section{padding:48px 24px}
+  .hero{padding:88px 24px 40px}
+  .hero h1{font-size:32px}
+  .portal-divider{padding:32px 24px 0}
+  .docs-footer{padding:40px 24px 60px}
+}
+</style>
+</head>
+<body>
+
+<button class="mobile-nav-toggle" id="navToggle" aria-label="Toggle navigation"><i class="fa-solid fa-bars"></i></button>
+<div class="mobile-backdrop" id="navBackdrop"></div>
+
+<div class="docs-shell">
+
+  <!-- ============================================================
+       SIDEBAR — deliberately mirrors the real SkuulPay app sidebar:
+       same group names and icons as the product's own navigation,
+       so the docs read as a native extension of the product.
+       ============================================================ -->
+  <aside class="docs-sidebar" id="sidebar">
+    <div class="sidebar-brand">
+      <div class="mark">SP</div>
+      <div>
+        <div class="name">SkuulPay</div>
+        <div class="tag">Documentation</div>
+      </div>
+    </div>
+
+    <div class="sidebar-search">
+      <div class="box">
+        <i class="fa-solid fa-magnifying-glass"></i>
+        <input type="text" id="docSearch" placeholder="Search documentation...">
+        <kbd>/</kbd>
+      </div>
+    </div>
+
+    <nav class="sidebar-nav" id="sidebarNav">
+      <div class="nav-group" data-group>
+        <div class="nav-group-label">Start Here</div>
+        <a class="nav-link" data-nav href="#hero"><i class="fa-solid fa-house"></i><span>Introduction</span></a>
+        <a class="nav-link" data-nav href="#getting-started"><i class="fa-solid fa-rocket"></i><span>Getting Started</span></a>
+      </div>
+      <div class="nav-group" data-group>
+        <div class="nav-group-label">Overview</div>
+        <a class="nav-link" data-nav href="#dashboard"><i class="fa-solid fa-chart-pie"></i><span>Dashboard</span></a>
+        <a class="nav-link" data-nav href="#analytics"><i class="fa-solid fa-chart-bar"></i><span>Analytics</span></a>
+      </div>
+      <div class="nav-group" data-group>
+        <div class="nav-group-label">Management</div>
+        <a class="nav-link" data-nav href="#students"><i class="fa-solid fa-users"></i><span>Students</span></a>
+        <a class="nav-link" data-nav href="#enrollments"><i class="fa-solid fa-user-check"></i><span>Enrollments</span></a>
+        <a class="nav-link" data-nav href="#sessions-terms"><i class="fa-solid fa-calendar-days"></i><span>Sessions &amp; Terms</span></a>
+        <a class="nav-link" data-nav href="#payment-categories"><i class="fa-solid fa-tags"></i><span>Payment Categories</span></a>
+        <a class="nav-link" data-nav href="#class-fees"><i class="fa-solid fa-money-bill-wave"></i><span>Class Fees</span></a>
+      </div>
+      <div class="nav-group" data-group>
+        <div class="nav-group-label">Finance</div>
+        <a class="nav-link" data-nav href="#payments"><i class="fa-solid fa-credit-card"></i><span>Payments</span></a>
+        <a class="nav-link" data-nav href="#financial-ledger"><i class="fa-solid fa-book"></i><span>Financial Ledger</span></a>
+        <a class="nav-link" data-nav href="#discounts"><i class="fa-solid fa-percent"></i><span>Discounts</span></a>
+      </div>
+      <div class="nav-group" data-group>
+        <div class="nav-group-label">Communication</div>
+        <a class="nav-link" data-nav href="#notifications"><i class="fa-solid fa-bell"></i><span>Notifications</span></a>
+      </div>
+      <div class="nav-group" data-group>
+        <div class="nav-group-label">System</div>
+        <a class="nav-link" data-nav href="#logs"><i class="fa-solid fa-shield-halved"></i><span>Audit &amp; Activity Logs</span></a>
+        <a class="nav-link" data-nav href="#settings"><i class="fa-solid fa-gear"></i><span>Settings</span></a>
+      </div>
+      <div class="nav-group" data-group>
+        <div class="nav-group-label">Parent &amp; Student Portal</div>
+        <a class="nav-link" data-nav href="#parent-portal"><i class="fa-solid fa-user-graduate"></i><span>Using the Portal</span></a>
+      </div>
+      <div class="nav-group" data-group>
+        <div class="nav-group-label">Help</div>
+        <a class="nav-link" data-nav href="#faq"><i class="fa-solid fa-circle-question"></i><span>FAQ</span></a>
+      </div>
+    </nav>
+
+    <div class="sidebar-footer">
+      <strong>SkuulPay</strong> · Powered by CodeVerse
+    </div>
+  </aside>
+
+  <!-- ============================================================
+       MAIN CONTENT
+       ============================================================ -->
+  <main class="docs-main">
+
+    <!-- HERO -->
+    <section class="hero" id="hero">
+      <div class="hero-inner">
+        <span class="section-eyebrow">Documentation</span>
+        <h1>Everything SkuulPay does, <span class="accent">in one place.</span></h1>
+        <p class="lede">SkuulPay is the fee payment and financial record system your school runs on — from assigning a class's fees for the term, to collecting payment, to reconciling the very last outstanding balance. This guide covers every screen, for the administrators running it and the parents paying through it.</p>
+        <div class="hero-ctas">
+          <a href="#getting-started" class="btn btn-primary"><i class="fa-solid fa-rocket"></i> Get Started</a>
+          <a href="#parent-portal" class="btn btn-ghost"><i class="fa-solid fa-user-graduate"></i> Parent &amp; Student Guide</a>
+        </div>
+
+        <div class="dash-mock">
+          <div class="dash-mock-head">
+            <div class="win-dots"><span></span><span></span><span></span></div>
+            <div class="label">admin · dashboard</div>
+          </div>
+          <div class="dash-grid">
+            <div class="dash-stat c-green">
+              <div class="icn"><i class="fa-solid fa-sack-dollar"></i></div>
+              <div class="val" data-count="4820000" data-prefix="$" data-format="compact">$0</div>
+              <div class="lbl">Total Collected</div>
+            </div>
+            <div class="dash-stat c-red">
+              <div class="icn"><i class="fa-solid fa-scale-unbalanced"></i></div>
+              <div class="val" data-count="612000" data-prefix="$" data-format="compact">$0</div>
+              <div class="lbl">Outstanding Balance</div>
+            </div>
+            <div class="dash-stat c-blue">
+              <div class="icn"><i class="fa-solid fa-users"></i></div>
+              <div class="val" data-count="1248">0</div>
+              <div class="lbl">Active Students</div>
+            </div>
+            <div class="dash-stat c-amber">
+              <div class="icn"><i class="fa-solid fa-percent"></i></div>
+              <div class="val" data-count="88" data-suffix="%">0%</div>
+              <div class="lbl">Collection Rate</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- GETTING STARTED -->
+    <section class="doc-section" id="getting-started">
+      <span class="section-eyebrow">Start here</span>
+      <h2>Getting started</h2>
+      <p class="lede">SkuulPay runs as two connected portals sharing one live record of every fee, payment, and balance: an <strong>Admin Portal</strong> for the school, and a <strong>Parent &amp; Student Portal</strong> for whoever is paying.</p>
+
+      <h3>The two portals</h3>
+      <div class="grid-2">
+        <div class="feat-card">
+          <i class="fa-solid fa-building-columns"></i>
+          <h4>Admin Portal</h4>
+          <p>Used by the school. Set up sessions and terms, assign fees per class, record payments, apply discounts, and see the school's full financial picture.</p>
+        </div>
+        <div class="feat-card">
+          <i class="fa-solid fa-user-graduate"></i>
+          <h4>Parent &amp; Student Portal</h4>
+          <p>Used by whoever pays. See what's owed, pay it, and keep a receipt-backed record of every payment ever made.</p>
+        </div>
+      </div>
+
+      <h3>Setting up your school</h3>
+      <ol class="steps">
+        <li><strong>Create your school's account.</strong> Provide your school's name, a username, an email address, and a password. Your username doubles as your <span class="path">School Code</span> — the code students and parents will enter to find your school when they sign in.</li>
+        <li><strong>Sign in to the Admin Portal</strong> with the email and password you just chose.</li>
+        <li><strong>Add a session and at least one term</strong> under <span class="path">Sessions &amp; Terms</span> — everything else in SkuulPay is organized around these.</li>
+        <li><strong>Turn on the payment categories</strong> your school charges for under <span class="path">Payment Categories</span>, then set an amount for each class under <span class="path">Class Fees</span>.</li>
+        <li><strong>Add your students</strong> and enroll them into a class for the current term — from that point on, they'll owe exactly what you set, automatically.</li>
+      </ol>
+
+      <div class="note tip">
+        <span class="note-tag">Tip</span>
+        <p>Not ready to add real students yet? Open <span class="path">Students <i class="fa-solid fa-angle-right sep"></i> Fill Test Data</span> to instantly populate a handful of example students with fees and enrollments across every session and term — enough to click through the entire product first. <span class="path">Clear Test Data</span> removes exactly what was added, and only that, whenever you're ready to go live.</p>
+      </div>
+
+      <h3>Signing in</h3>
+      <table class="ref-table">
+        <thead><tr><th>Portal</th><th>You'll need</th></tr></thead>
+        <tbody>
+          <tr><td>Admin</td><td>The email address and password chosen when the school account was created.</td></tr>
+          <tr><td>Parent &amp; Student</td><td>The school's code (given to you by the school) and the student's Student ID.</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <div class="portal-divider"><div class="label"><i class="fa-solid fa-building-columns"></i> Admin Portal</div><div class="line"></div></div>
+
+    <!-- DASHBOARD -->
+    <section class="doc-section" id="dashboard">
+      <span class="section-eyebrow">Overview</span>
+      <h2>Dashboard</h2>
+      <p class="lede">The first screen after signing in — a real-time snapshot of the school's finances for whichever session and term you're looking at.</p>
+
+      <h3>What's on it</h3>
+      <ul>
+        <li><strong>Total Collected</strong> — everything received so far, cash and card combined.</li>
+        <li><strong>Outstanding Balance</strong> — everything still owed across every enrolled student.</li>
+        <li><strong>Active Students</strong> and <strong>Payments Made</strong> — headline counts for the period.</li>
+        <li>A running feed of recent activity — fees assigned, payments approved, discounts applied.</li>
+      </ul>
+
+      <h3>Filtering by session and term</h3>
+      <p>A filter at the top of the screen narrows every number on the Dashboard — and on Analytics, Payments, the Ledger, and Enrollments — to a single session and term. Leave it on <strong>All</strong> to see the school's numbers overall, or pin it to one term to see exactly that period in isolation.</p>
+    </section>
+
+    <!-- ANALYTICS -->
+    <section class="doc-section" id="analytics">
+      <span class="section-eyebrow">Overview</span>
+      <h2>Analytics</h2>
+      <p class="lede">Where the Dashboard gives you the headline numbers, Analytics breaks them down — by class, by term, and by student.</p>
+
+      <div class="grid-3">
+        <div class="feat-card">
+          <i class="fa-solid fa-chart-bar"></i>
+          <h4>Revenue by Class</h4>
+          <p>Which classes have collected the most, ranked side by side.</p>
+        </div>
+        <div class="feat-card">
+          <i class="fa-solid fa-chart-pie"></i>
+          <h4>Revenue by Term</h4>
+          <p>Compare collection across every term in a session at a glance.</p>
+        </div>
+        <div class="feat-card">
+          <i class="fa-solid fa-user-clock"></i>
+          <h4>Top Debtors</h4>
+          <p>The students with the largest outstanding balances, sorted highest first.</p>
+        </div>
+      </div>
+
+      <p>Analytics also breaks down your student body by status — <strong>Active</strong>, <strong>Graduated</strong>, and <strong>Suspended</strong> — and surfaces your overall <strong>Collection Rate</strong>: the share of everything owed that's actually been collected.</p>
+    </section>
+
+    <!-- STUDENTS -->
+    <section class="doc-section" id="students">
+      <span class="section-eyebrow">Management</span>
+      <h2>Students</h2>
+      <p class="lede">Every student's record lives here — who they are, what class they're in, and everything they owe or have paid, in one place.</p>
+
+      <h3>Adding a student</h3>
+      <p>Each student record holds their full name, a unique Student ID, class, gender, and a parent or guardian's name and phone number. The Student ID is what they'll use, alongside your school's code, to sign in to the Parent &amp; Student Portal.</p>
+
+      <h3>Student status</h3>
+      <table class="ref-table">
+        <thead><tr><th>Status</th><th>Meaning</th></tr></thead>
+        <tbody>
+          <tr><td>Active</td><td>Currently enrolled and included in fee assignment, payments, and reporting.</td></tr>
+          <tr><td>Graduated</td><td>Kept on record with full payment history, out of active fee cycles.</td></tr>
+          <tr><td>Suspended</td><td>Temporarily excluded from active reporting without deleting their history.</td></tr>
+        </tbody>
+      </table>
+
+      <h3>A student's profile</h3>
+      <p>Opening any student shows their complete picture — every fee assigned to them, every payment they've made, their current balance, and a button to <span class="path">Record Cash Payment</span> directly against them.</p>
+
+      <div class="mock-card">
+        <div class="mock-card-title"><i class="fa-solid fa-id-card"></i> Student Profile — Preview</div>
+        <div class="mock-row"><div><div class="who">Fees Assigned</div></div><span class="amt">$450.00</span></div>
+        <div class="mock-row"><div><div class="who">Payments Made</div></div><span class="amt pos">$300.00</span></div>
+        <div class="mock-row"><div><div class="who">Current Balance</div></div><span class="amt neg">$150.00</span></div>
+      </div>
+    </section>
+
+    <!-- ENROLLMENTS -->
+    <section class="doc-section" id="enrollments">
+      <span class="section-eyebrow">Management</span>
+      <h2>Enrollments</h2>
+      <p class="lede">Enrollment is what connects a student to a class for a specific session and term — and it's what makes that class's fees actually apply to them.</p>
+      <p>A student can be added to the school without being enrolled anywhere yet; they won't owe anything until they're enrolled in a class for a term. Use <span class="path">Bulk Enroll</span> to enroll a whole class at once instead of one student at a time — useful at the start of every new term.</p>
+      <div class="note">
+        <span class="note-tag">Note</span>
+        <p>Re-enrolling students each new term is what carries them into that term's fee cycle — a student enrolled last term isn't automatically enrolled this term.</p>
+      </div>
+    </section>
+
+    <!-- SESSIONS & TERMS -->
+    <section class="doc-section" id="sessions-terms">
+      <span class="section-eyebrow">Management</span>
+      <h2>Sessions &amp; Terms</h2>
+      <p class="lede">Every fee, payment, and balance in SkuulPay belongs to a specific session and term — this is the calendar the rest of the product is built around.</p>
+      <ul>
+        <li><strong>A session</strong> is an academic year, e.g. <em>2024/2025</em>.</li>
+        <li><strong>A term</strong> is a period within it, e.g. <em>First Term</em>, <em>Second Term</em>.</li>
+        <li>Exactly one term is marked <strong>active</strong> at a time — it's what every screen defaults to, and what a parent's payment applies to unless a past balance takes priority (more on that under <a href="#financial-ledger">Financial Ledger</a>).</li>
+      </ul>
+      <p>Keeping every record scoped to a session and term is what lets you look back at any past period cleanly — nothing from two terms ago gets mixed into this term's numbers.</p>
+    </section>
+
+    <!-- PAYMENT CATEGORIES -->
+    <section class="doc-section" id="payment-categories">
+      <span class="section-eyebrow">Management</span>
+      <h2>Payment Categories</h2>
+      <p class="lede">Categories are the types of fee your school charges — tuition, feeding, transport, books, or anything else you bill for.</p>
+      <p>Create as many categories as your school needs and enable the ones currently in use. Only enabled categories can have an amount set against them under Class Fees, so disabling one you no longer charge for keeps it out of new fee assignments without deleting its history.</p>
+    </section>
+
+    <!-- CLASS FEES -->
+    <section class="doc-section" id="class-fees">
+      <span class="section-eyebrow">Management</span>
+      <h2>Class Fees</h2>
+      <p class="lede">This is where an amount actually gets attached to a class — set it once, and every student enrolled in that class for that term owes it automatically.</p>
+      <p>A fee is defined by four things: a <strong>class</strong>, a <strong>session</strong>, a <strong>term</strong>, and a <strong>category</strong>. That combination can carry its own amount — so JSS 1's tuition for First Term can be set independently of JSS 1's tuition for Second Term, or of SS 3's tuition altogether.</p>
+
+      <div class="mock-card">
+        <div class="mock-card-title"><i class="fa-solid fa-money-bill-wave"></i> Class Fee — Example</div>
+        <div class="mock-row"><div><div class="who">JSS 1 · School Fees</div><div class="meta">2024/2025 · First Term</div></div><span class="amt">$450.00</span></div>
+        <div class="mock-row"><div><div class="who">JSS 1 · Feeding</div><div class="meta">2024/2025 · First Term</div></div><span class="amt">$120.00</span></div>
+      </div>
+
+      <p>Once a class's fee is set, adding a new student to that class and enrolling them is all it takes for that fee to apply to them too — there's no need to assign anything per student.</p>
+    </section>
+
+    <!-- PAYMENTS -->
+    <section class="doc-section" id="payments">
+      <span class="section-eyebrow">Finance</span>
+      <h2>Payments</h2>
+      <p class="lede">Money reaches SkuulPay one of two ways: a parent pays through the Parent Portal, or the school records a payment it received directly.</p>
+
+      <h3>Online payments</h3>
+      <p>Parents pay through the Parent Portal using a card via your configured payment gateway. Once a payment clears, it's approved automatically, a receipt is generated, and the student's balance updates immediately.</p>
+
+      <h3>Recording a cash or bank payment</h3>
+      <p>For anything paid directly to the school — cash at the office, a bank transfer, a cheque — use <span class="path">Record Cash Payment</span> from a student's profile or the Payments screen. Enter the amount, category, and a note; it's logged exactly like an online payment, receipt included.</p>
+
+      <h3>Payment statuses</h3>
+      <table class="ref-table">
+        <thead><tr><th>Status</th><th>Meaning</th></tr></thead>
+        <tbody>
+          <tr><td>Pending</td><td>Submitted, awaiting confirmation from the payment gateway.</td></tr>
+          <tr><td>Approved</td><td>Confirmed and applied — the balance is updated and a receipt exists.</td></tr>
+        </tbody>
+      </table>
+
+      <p>Filter the Payments screen by class, category, or status to find any transaction quickly.</p>
+    </section>
+
+    <!-- FINANCIAL LEDGER -->
+    <section class="doc-section" id="financial-ledger">
+      <span class="section-eyebrow">Finance</span>
+      <h2>Financial Ledger</h2>
+      <p class="lede">The Ledger is the single running record behind every number in SkuulPay — every fee assigned, every payment received, and every discount applied, for every student, permanently.</p>
+
+      <h3>How a payment settles a balance</h3>
+      <p>When a payment comes in, it's applied to the <strong>oldest outstanding balance first</strong> — automatically. If a student owed money from last term and pays this term, that payment clears last term's balance before it touches this term's. Nothing needs to be told which term a payment is "for"; the Ledger works it out.</p>
+
+      <div class="ledger-tape">
+        <div class="tape-entry">
+          <div class="desc">Fee Assigned<span class="term-tag">2024/2025 · First Term</span></div>
+          <div></div>
+          <div class="amt">+$450.00</div>
+        </div>
+        <div class="tape-entry">
+          <div class="desc">Fee Assigned<span class="term-tag">2024/2025 · Second Term</span></div>
+          <div></div>
+          <div class="amt">+$450.00</div>
+        </div>
+        <div class="tape-entry">
+          <div class="desc">Payment Received<span class="term-tag">Applied to First Term — the older of the two balances</span></div>
+          <div><span class="badge badge-success">settles First Term</span></div>
+          <div class="amt neg">−$450.00</div>
+        </div>
+        <div class="tape-entry">
+          <div class="desc">Remaining Balance<span class="term-tag">Second Term still outstanding</span></div>
+          <div></div>
+          <div class="amt">$450.00</div>
+        </div>
+      </div>
+
+      <p>Open any student's Ledger to see this full history laid out — filterable by session, term, and entry type — as the definitive answer to "what happened with this student's account."</p>
+    </section>
+
+    <!-- DISCOUNTS -->
+    <section class="doc-section" id="discounts">
+      <span class="section-eyebrow">Finance</span>
+      <h2>Discounts</h2>
+      <p class="lede">Define a discount once — a name and an amount — then apply it to the students who qualify, one at a time or all at once.</p>
+
+      <h3>Creating a discount</h3>
+      <p>A discount is just a name (<em>"Staff Children," "Merit Scholarship," "Sibling Discount"</em>) and a fixed amount. Once created, it can be assigned to any student, against any category, for any term.</p>
+
+      <h3>Assigning to one student</h3>
+      <p>Use <span class="path">Assign</span> next to a discount to apply it to a single student for a specific session, term, and category.</p>
+
+      <h3>Bulk Assign</h3>
+      <p>Use <span class="path">Bulk Assign</span> to apply the same discount to <strong>many students across many terms in one action</strong> — for example, giving every staff member's child a discount across the entire academic year in a single step, instead of assigning it one student and one term at a time.</p>
+
+      <div class="mock-card">
+        <div class="mock-card-title"><i class="fa-solid fa-layer-group"></i> Bulk Assign — Example</div>
+        <div class="mock-row"><div><div class="who">Discount</div></div><span class="amt">Staff Children — $50.00</span></div>
+        <div class="mock-row"><div><div class="who">Students selected</div></div><span class="amt">6</span></div>
+        <div class="mock-row"><div><div class="who">Terms selected</div></div><span class="amt">4</span></div>
+        <div class="mock-row"><div><div class="who">Discounts created</div></div><span class="amt pos">24</span></div>
+      </div>
+
+      <div class="note warn">
+        <span class="note-tag">Good to know</span>
+        <p>A discount can never bring a student's balance below zero — if it would exceed what's actually owed for that term and category, that one is skipped and listed for you, while everyone else in the batch still goes through.</p>
+      </div>
+    </section>
+
+    <!-- NOTIFICATIONS -->
+    <section class="doc-section" id="notifications">
+      <span class="section-eyebrow">Communication</span>
+      <h2>Notifications</h2>
+      <p class="lede">Both portals keep a notification feed so nothing gets missed.</p>
+      <p>Students and parents are notified the moment a fee is assigned to them and the moment a payment is approved. Administrators see notifications for anything that needs attention — a payment awaiting confirmation, for instance. Every notification is available from the bell icon in either portal.</p>
+    </section>
+
+    <!-- LOGS -->
+    <section class="doc-section" id="logs">
+      <span class="section-eyebrow">System</span>
+      <h2>Audit &amp; Activity Logs</h2>
+      <p class="lede">Two different views of the same history: one built for security review, one built for a quick read of what's been happening.</p>
+      <div class="grid-2">
+        <div class="feat-card">
+          <i class="fa-solid fa-shield-halved"></i>
+          <h4>Audit Logs</h4>
+          <p>A security-focused record of sign-ins and account-level changes — who did what, and when.</p>
+        </div>
+        <div class="feat-card">
+          <i class="fa-solid fa-clock-rotate-left"></i>
+          <h4>Activity Logs</h4>
+          <p>A plain-language feed of recent activity — "Adaeze N. enrolled in JSS 1," "Payment approved for Bayo A." — for a quick sense of what's happened lately.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- SETTINGS -->
+    <section class="doc-section" id="settings">
+      <span class="section-eyebrow">System</span>
+      <h2>Settings</h2>
+      <p class="lede">Everything about how your school's account is configured, in one screen.</p>
+
+      <h3>School profile</h3>
+      <p>Set your school's name and address as they should appear on receipts and PDF exports.</p>
+
+      <h3>Currency</h3>
+      <p>Choose the currency your school collects in — the symbol updates everywhere in both portals automatically, including receipts and PDF exports.</p>
+
+      <h3>Payment gateway</h3>
+      <p>Connect your payment gateway keys here so the Parent Portal can accept card payments. You can also set a minimum payment amount and the description parents see at checkout.</p>
+
+      <h3>Security</h3>
+      <p>Change your admin password from here at any time.</p>
+
+      <h3>Data</h3>
+      <p>Export everything — students, fees, payments, the full Ledger — at any time, or use <span class="path">Fill Test Data</span> / <span class="path">Clear Test Data</span> to explore the product with sample records without touching anything real.</p>
+    </section>
+
+    <div class="portal-divider"><div class="label"><i class="fa-solid fa-user-graduate"></i> Parent &amp; Student Portal</div><div class="line"></div></div>
+
+    <!-- PARENT PORTAL -->
+    <section class="doc-section" id="parent-portal">
+      <span class="section-eyebrow">Parent &amp; Student</span>
+      <h2>Using the Portal</h2>
+      <p class="lede">Built for whoever is paying — see exactly what's owed, pay it, and keep a record of everything ever paid.</p>
+
+      <h3>Signing in</h3>
+      <p>You'll need two things: your school's code, and the student's Student ID — both provided by the school. No separate password to remember for the student side.</p>
+
+      <h3>Dashboard</h3>
+      <p>Your balance for the current term, everything assigned to you, and how many payments you've made — filterable back to any past session and term.</p>
+
+      <h3>Make Payment</h3>
+      <p>Pay whatever's currently owed. If there's anything still outstanding from a previous term, it's shown clearly — and any payment made will settle that older balance first, automatically.</p>
+
+      <h3>Payment History</h3>
+      <p>Every payment ever made, with its status and a downloadable receipt.</p>
+
+      <h3>Notifications</h3>
+      <p>An update the moment a new fee is assigned or a payment is approved.</p>
+    </section>
+
+    <!-- FAQ -->
+    <section class="doc-section" id="faq">
+      <span class="section-eyebrow">Help</span>
+      <h2>Frequently asked questions</h2>
+
+      <div class="faq-list">
+        <div class="faq-item">
+          <div class="faq-q"><span>What happens if a payment is more than what's owed this term?</span><i class="fa-solid fa-plus"></i></div>
+          <div class="faq-a"><p>It's applied to the oldest outstanding balance first. If nothing older is owed, the extra is recorded against the current term as an advance payment.</p></div>
+        </div>
+        <div class="faq-item">
+          <div class="faq-q"><span>Can more than one person manage the school's account?</span><i class="fa-solid fa-plus"></i></div>
+          <div class="faq-a"><p>Each school has one administrator sign-in, used by whoever manages fees and records payments — your bursar, proprietor, or office manager.</p></div>
+        </div>
+        <div class="faq-item">
+          <div class="faq-q"><span>Can I change our school's currency later?</span><i class="fa-solid fa-plus"></i></div>
+          <div class="faq-a"><p>Yes — update it any time in Settings. The symbol updates across both portals, including past receipts.</p></div>
+        </div>
+        <div class="faq-item">
+          <div class="faq-q"><span>A parent doesn't have the Student ID — what do they do?</span><i class="fa-solid fa-plus"></i></div>
+          <div class="faq-a"><p>Any administrator can look it up from that student's profile under Students and share it with the parent directly.</p></div>
+        </div>
+        <div class="faq-item">
+          <div class="faq-q"><span>Is our school's data kept separate from other schools?</span><i class="fa-solid fa-plus"></i></div>
+          <div class="faq-a"><p>Yes. Every school's records are kept entirely separate from every other school using SkuulPay, behind its own sign-in.</p></div>
+        </div>
+        <div class="faq-item">
+          <div class="faq-q"><span>What's the difference between a Session and a Term?</span><i class="fa-solid fa-plus"></i></div>
+          <div class="faq-a"><p>A session is the full academic year; a term is one period inside it. Fees, payments, and balances are always tied to both.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <footer class="docs-footer">
+      <div class="brand-mini">
+        <div class="mark">SP</div>
+        <div>
+          <div class="copy" style="color:var(--text-2);font-weight:600">SkuulPay</div>
+          <div class="copy">Powered by CodeVerse</div>
+        </div>
+      </div>
+      <div class="links">
+        <a href="#hero">Introduction</a>
+        <a href="#getting-started">Getting Started</a>
+        <a href="#faq">FAQ</a>
+      </div>
+    </footer>
+
+  </main>
+</div>
+
+<script>
+// ============================================================
+// Mobile sidebar toggle
+// ============================================================
+const sidebar = document.getElementById('sidebar');
+const navToggle = document.getElementById('navToggle');
+const navBackdrop = document.getElementById('navBackdrop');
+function closeMobileNav(){ sidebar.classList.remove('open'); navBackdrop.classList.remove('show'); }
+navToggle.addEventListener('click', () => {
+  sidebar.classList.toggle('open');
+  navBackdrop.classList.toggle('show');
+});
+navBackdrop.addEventListener('click', closeMobileNav);
+document.querySelectorAll('[data-nav]').forEach(link => {
+  link.addEventListener('click', () => { if(window.innerWidth <= 768) closeMobileNav(); });
+});
+
+// ============================================================
+// Scroll-spy — highlight the sidebar link matching the section in view
+// ============================================================
+const navLinks = Array.from(document.querySelectorAll('[data-nav]'));
+const sections = navLinks.map(l => document.querySelector(l.getAttribute('href'))).filter(Boolean);
+
+function setActive(id){
+  navLinks.forEach(l => l.classList.toggle('active', l.getAttribute('href') === '#'+id));
+}
+if('IntersectionObserver' in window){
+  const io = new IntersectionObserver((entries) => {
+    // Pick the entry closest to the top of the viewport that's currently intersecting
+    const visible = entries.filter(e => e.isIntersecting).sort((a,b) => a.boundingClientRect.top - b.boundingClientRect.top);
+    if(visible.length) setActive(visible[0].target.id);
+  }, { rootMargin: '-15% 0px -70% 0px', threshold: 0 });
+  sections.forEach(s => io.observe(s));
+}
+
+// ============================================================
+// Search filter — filters sidebar nav items by label text
+// ============================================================
+const searchInput = document.getElementById('docSearch');
+searchInput.addEventListener('input', (e) => {
+  const q = e.target.value.trim().toLowerCase();
+  document.querySelectorAll('.nav-group').forEach(group => {
+    let anyVisible = false;
+    group.querySelectorAll('[data-nav]').forEach(link => {
+      const text = link.textContent.trim().toLowerCase();
+      const match = !q || text.includes(q);
+      link.classList.toggle('hidden', !match);
+      if(match) anyVisible = true;
+    });
+    group.classList.toggle('all-hidden', !anyVisible);
+  });
+});
+document.addEventListener('keydown', (e) => {
+  if(e.key === '/' && document.activeElement !== searchInput){
+    e.preventDefault();
+    searchInput.focus();
+  }
+  if(e.key === 'Escape' && document.activeElement === searchInput){
+    searchInput.blur();
+  }
+});
+
+// ============================================================
+// FAQ accordion
+// ============================================================
+document.querySelectorAll('.faq-item').forEach(item => {
+  item.querySelector('.faq-q').addEventListener('click', () => {
+    const wasOpen = item.classList.contains('open');
+    document.querySelectorAll('.faq-item.open').forEach(i => i.classList.remove('open'));
+    if(!wasOpen) item.classList.add('open');
+  });
+});
+
+// ============================================================
+// Hero stat count-up — plays once, on first view, respects reduced motion
+// ============================================================
+const reduceMotion = window.matchMedia ? window.matchMedia('(prefers-reduced-motion: reduce)').matches : false;
+function formatCompact(n){
+  if(n >= 1000000) return (n/1000000).toFixed(n%1000000===0?0:1)+'M';
+  if(n >= 1000) return (n/1000).toFixed(n%1000===0?0:1)+'K';
+  return String(n);
+}
+function animateCount(el){
+  const target = parseFloat(el.dataset.count);
+  const prefix = el.dataset.prefix || '';
+  const suffix = el.dataset.suffix || '';
+  const isCompact = el.dataset.format === 'compact';
+  if(reduceMotion){
+    el.textContent = prefix + (isCompact ? formatCompact(target) : target.toLocaleString()) + suffix;
+    return;
+  }
+  const duration = 1400;
+  const start = performance.now();
+  function tick(now){
+    const p = Math.min(1, (now - start) / duration);
+    const eased = 1 - Math.pow(1 - p, 3);
+    const val = Math.round(target * eased);
+    el.textContent = prefix + (isCompact ? formatCompact(val) : val.toLocaleString()) + suffix;
+    if(p < 1) requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
+}
+const statEls = document.querySelectorAll('[data-count]');
+if('IntersectionObserver' in window){
+  const statIo = new IntersectionObserver((entries, obs) => {
+    entries.forEach(entry => {
+      if(entry.isIntersecting){
+        animateCount(entry.target);
+        obs.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.4 });
+  statEls.forEach(el => statIo.observe(el));
+} else {
+  statEls.forEach(animateCount);
+}
+</script>
+</body>
+</html>
